@@ -276,7 +276,7 @@ export default function WritingPage() {
           console.error('Failed to parse saved state:', e);
         }
       }
-      setHasLastAnalysis(sessionStorage.getItem('lastAnalysis') !== null);
+     
     }
   }, []);
 
@@ -295,16 +295,7 @@ export default function WritingPage() {
     }
   }, [essayText, planningAnswers, currentQuestion, analysisState]);
 
-  const wordCount = useMemo(() => {
-    if (!essayText.trim()) return 0;
-    return essayText.trim().split(/\s+/).length;
-  }, [essayText]);
-
-  const isPlanningComplete = useMemo(() => {
-    return Object.values(planningAnswers).every(
-      (answer) => answer.trim().length > 0
-    );
-  }, [planningAnswers]);
+  
 
   const handleAnalyze = async () => {
     if (wordCount === 0) return;
