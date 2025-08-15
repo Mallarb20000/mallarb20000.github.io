@@ -190,6 +190,7 @@ export default function WritingPage() {
   const [analysisState, setAnalysisState] = useState<AnalysisState>('initial')
   const [currentQuestion, setCurrentQuestion] = useState<Question>(SAMPLE_QUESTIONS[0])
   const [lastAnalysisResult, setLastAnalysisResult] = useState<any>(null)
+  const [isPlanningVisible, setIsPlanningVisible] = useState(true)
 
   // Load state from sessionStorage on component mount
   useEffect(() => {
@@ -305,7 +306,10 @@ export default function WritingPage() {
   }, [planningAnswers]);
 
   const hasLastAnalysis = useMemo(() => {
-    return sessionStorage.getItem('lastAnalysis') !== null;
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('lastAnalysis') !== null;
+    }
+    return false;
   }, [analysisState]);
   
 
@@ -322,10 +326,37 @@ export default function WritingPage() {
         isPlanningComplete={isPlanningComplete}
         hasLastAnalysis={hasLastAnalysis}
       />
-      <PlanningPad
-        planningAnswers={planningAnswers}
-        onPlanningChange={setPlanningAnswers}
-      />
+      
+      {/* Mobile Toggle Button */}
+      <button 
+        className={`planning-toggle-btn ${isPlanningVisible ? 'hidden' : 'visible'}`}
+        onClick={() => setIsPlanningVisible(true)}
+        aria-label="Show planning notes"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+        Planning
+      </button>
+
+      {/* Planning Panel */}
+      <div className={`planning-panel ${isPlanningVisible ? 'visible' : 'hidden'}`}>
+        <PlanningPad
+          planningAnswers={planningAnswers}
+          onPlanningChange={setPlanningAnswers}
+        />
+        
+        {/* Mobile Close Button */}
+        <button 
+          className="planning-close-btn"
+          onClick={() => setIsPlanningVisible(false)}
+          aria-label="Hide planning notes"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }
