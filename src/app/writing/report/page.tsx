@@ -221,12 +221,165 @@ export default function ReportPage() {
     setIsPdfGenerating(true)
     
     try {
-      // Try using window.print() as a fallback for now
-      alert('PDF generation is being prepared. For now, please use the "Print Report" button and save as PDF from your browser\'s print dialog.')
-      window.print()
+      // Create a comprehensive PDF content using the same format as text report
+      const pdfContent = generateDetailedReportContent()
+      
+      // Create a temporary window with the content formatted for PDF
+      const printWindow = window.open('', '_blank', 'width=800,height=600')
+      if (!printWindow) {
+        throw new Error('Could not open print window')
+      }
+      
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>IELTS Writing Analysis Report</title>
+          <style>
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+              line-height: 1.4;
+              color: #333;
+              max-width: 800px;
+              margin: 0 auto;
+              padding: 15px;
+              font-size: 13px;
+            }
+            h1 { 
+              color: #2563eb; 
+              text-align: center; 
+              border-bottom: 2px solid #2563eb; 
+              padding-bottom: 0.5rem; 
+              margin: 0 0 1rem 0;
+              font-size: 1.8rem;
+            }
+            h2 { 
+              color: #2563eb; 
+              margin: 1rem 0 0.5rem 0; 
+              font-size: 1.2rem;
+              page-break-after: avoid;
+            }
+            h3 { 
+              color: #2563eb; 
+              margin: 0.75rem 0 0.25rem 0; 
+              font-size: 1rem;
+            }
+            h4 { 
+              color: #666; 
+              margin: 0.5rem 0 0.25rem 0; 
+              font-size: 0.9rem;
+            }
+            p { margin: 0.25rem 0; }
+            .score-section { 
+              background: #f8fafc; 
+              padding: 0.75rem; 
+              border-radius: 6px; 
+              margin: 0.5rem 0; 
+              page-break-inside: avoid;
+            }
+            .overall-score { 
+              font-size: 1.5rem; 
+              font-weight: bold; 
+              color: #2563eb; 
+              text-align: center; 
+              margin: 0.25rem 0;
+            }
+            .band-scores { 
+              display: grid; 
+              grid-template-columns: repeat(2, 1fr); 
+              gap: 0.5rem; 
+              margin: 0.5rem 0; 
+            }
+            .band-score { 
+              background: white; 
+              padding: 0.75rem; 
+              border-radius: 6px; 
+              border: 1px solid #e2e8f0; 
+              page-break-inside: avoid;
+            }
+            .band-score h3 { 
+              margin: 0 0 0.25rem 0; 
+              font-size: 0.9rem;
+            }
+            .band-score div { 
+              font-size: 1.2rem; 
+              font-weight: bold; 
+              color: #2563eb; 
+              margin: 0.25rem 0;
+            }
+            .band-score p { 
+              font-size: 0.85rem; 
+              margin: 0.25rem 0 0 0;
+            }
+            .essay-content { 
+              background: #f9fafb; 
+              padding: 1rem; 
+              border-radius: 6px; 
+              margin: 0.5rem 0; 
+            }
+            .question-box { 
+              background: #fef3c7; 
+              padding: 1rem; 
+              border-radius: 6px; 
+              border-left: 3px solid #f59e0b; 
+              margin: 0.5rem 0; 
+            }
+            blockquote { 
+              background: #f1f5f9; 
+              padding: 0.5rem; 
+              border-left: 3px solid #64748b; 
+              margin: 0.25rem 0; 
+              font-style: italic; 
+              font-size: 0.9rem;
+            }
+            ul { 
+              margin: 0.25rem 0; 
+              padding-left: 1.2rem; 
+            }
+            li { 
+              margin: 0.1rem 0; 
+              font-size: 0.85rem;
+            }
+            hr { 
+              margin: 1rem 0; 
+              border: none; 
+              border-top: 1px solid #ddd; 
+            }
+            @media print {
+              body { 
+                margin: 0; 
+                padding: 10px; 
+                font-size: 11px;
+              }
+              .no-print { display: none; }
+              h1 { font-size: 1.6rem; }
+              h2 { font-size: 1.1rem; }
+              .overall-score { font-size: 1.3rem; }
+              .band-score div { font-size: 1.1rem; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="no-print" style="text-align: center; margin-bottom: 20px;">
+            <button onclick="window.print()" style="background: #2563eb; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Print/Save as PDF</button>
+            <button onclick="window.close()" style="background: #6b7280; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">Close</button>
+          </div>
+          ${pdfContent}
+        </body>
+        </html>
+      `)
+      
+      printWindow.document.close()
+      printWindow.focus()
+      
+      // Auto-print after a short delay
+      setTimeout(() => {
+        printWindow.print()
+      }, 500)
+      
     } catch (error) {
       console.error('PDF generation failed:', error)
-      alert('PDF generation failed. Please use the "Print Report" button and save as PDF from your browser\'s print dialog.')
+      alert('PDF generation failed. Please use your browser\'s print function to save as PDF.')
     } finally {
       setIsPdfGenerating(false)
     }
@@ -245,6 +398,87 @@ export default function ReportPage() {
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
+  }
+
+  const generateDetailedReportContent = () => {
+    const date = new Date(analysisData?.timestamp || Date.now()).toLocaleDateString()
+    const overallBand = analysisData?.overallBand || 0
+    const wordCount = analysisData?.wordCount || 0
+    
+    return `
+      <h1>IELTS Writing Analysis Report</h1>
+      <p style="text-align: center; color: #64748b; margin-bottom: 1rem; font-size: 0.9rem;">Generated on ${date}</p>
+      
+      <div class="score-section">
+        <h2>Overall Assessment</h2>
+        <div class="overall-score">Band ${overallBand}</div>
+        <p><strong>Confidence:</strong> ${Math.round((analysisData?.metadata?.confidence || 0.5) * 100)}% | <strong>Words:</strong> ${wordCount}</p>
+        <p><strong>Feedback:</strong> ${analysisData?.overallFeedback || 'No feedback available'}</p>
+      </div>
+
+      <h2>IELTS Band Scores</h2>
+      <div class="band-scores">
+        <div class="band-score">
+          <h3>📝 Task Response</h3>
+          <div style="font-size: 1.5rem; font-weight: bold; color: #2563eb;">Band ${analysisData?.bandScores?.taskResponse?.score || 0}</div>
+          <p>${analysisData?.bandScores?.taskResponse?.justification || 'Not available'}</p>
+        </div>
+        <div class="band-score">
+          <h3>🔗 Coherence & Cohesion</h3>
+          <div style="font-size: 1.5rem; font-weight: bold; color: #2563eb;">Band ${analysisData?.bandScores?.coherenceCohesion?.score || 0}</div>
+          <p>${analysisData?.bandScores?.coherenceCohesion?.justification || 'Not available'}</p>
+        </div>
+        <div class="band-score">
+          <h3>📚 Lexical Resource</h3>
+          <div style="font-size: 1.5rem; font-weight: bold; color: #2563eb;">Band ${analysisData?.bandScores?.lexicalResource?.score || 0}</div>
+          <p>${analysisData?.bandScores?.lexicalResource?.justification || 'Not available'}</p>
+        </div>
+        <div class="band-score">
+          <h3>✏️ Grammar & Accuracy</h3>
+          <div style="font-size: 1.5rem; font-weight: bold; color: #2563eb;">Band ${analysisData?.bandScores?.grammarAccuracy?.score || 0}</div>
+          <p>${analysisData?.bandScores?.grammarAccuracy?.justification || 'Not available'}</p>
+        </div>
+      </div>
+
+      <h2>Essay Structure Analysis</h2>
+      <div class="band-scores">
+        <div class="band-score">
+          <h3>🎯 Hook Sentence</h3>
+          <div>Score: ${analysisData?.structuralAnalysis?.hook?.score?.toUpperCase().replace('_', ' ') || 'NEEDS WORK'}</div>
+          ${analysisData?.structuralAnalysis?.hook?.text ? `<blockquote>"${analysisData.structuralAnalysis.hook.text}"</blockquote>` : ''}
+          <p>${analysisData?.structuralAnalysis?.hook?.feedback || 'No feedback available'}</p>
+        </div>
+
+        <div class="band-score">
+          <h3>📝 Thesis Statement</h3>
+          <div>Score: ${analysisData?.structuralAnalysis?.thesis?.score?.toUpperCase().replace('_', ' ') || 'NEEDS WORK'}</div>
+          ${analysisData?.structuralAnalysis?.thesis?.text ? `<blockquote>"${analysisData.structuralAnalysis.thesis.text}"</blockquote>` : ''}
+          <p>${analysisData?.structuralAnalysis?.thesis?.feedback || 'No feedback available'}</p>
+        </div>
+      </div>
+
+      <div class="band-score">
+        <h4>💡 Key Improvement Tips</h4>
+        <p><strong>Hook:</strong> Start with statistics/questions, avoid generic statements, relate to topic, keep concise.</p>
+        <p><strong>Thesis:</strong> State position clearly, include 2-3 main points, make specific and arguable.</p>
+      </div>
+
+      <h2>Your Essay</h2>
+      <div class="question-box">
+        <h3>Essay Question</h3>
+        <p>${essayPrompt}</p>
+      </div>
+      
+      <div class="essay-content">
+        <h3>Your Response (${wordCount} words)</h3>
+        ${essayText.split('\n').map(paragraph => `<p>${paragraph.trim() || '&nbsp;'}</p>`).join('')}
+      </div>
+
+      <hr style="margin: 2rem 0;">
+      <p style="text-align: center; color: #64748b; font-size: 0.875rem;">
+        Generated with IELTS Writing Analyzer • Report Date: ${date}
+      </p>
+    `
   }
 
   const generateReportContent = () => {
@@ -488,89 +722,6 @@ Report Date: ${date}
           />
         </CollapsibleSection>
 
-      </div>
-      
-      <div className="action-buttons" style={{
-        marginTop: '2rem',
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '1rem',
-        justifyContent: 'center',
-        '@media print': { display: 'none' }
-      }}>
-        <button 
-          className="btn btn-primary"
-          onClick={() => window.history.back()}
-          style={{
-            backgroundColor: '#2563eb',
-            color: 'white',
-            fontWeight: '600',
-            padding: '0.5rem 1rem',
-            borderRadius: '0.5rem',
-            border: 'none',
-            cursor: 'pointer',
-            transition: 'background-color 0.2s'
-          }}
-        >
-          ← Back to Writing
-        </button>
-        <button 
-          className="btn btn-secondary"
-          onClick={() => window.print()}
-          style={{
-            backgroundColor: '#4b5563',
-            color: 'white',
-            fontWeight: '600',
-            padding: '0.5rem 1rem',
-            borderRadius: '0.5rem',
-            border: 'none',
-            cursor: 'pointer',
-            transition: 'background-color 0.2s'
-          }}
-        >
-          🖨️ Print Report
-        </button>
-        <button 
-          className="btn btn-download-pdf"
-          onClick={downloadPDF}
-          disabled={isPdfGenerating}
-          style={{
-            backgroundColor: isPdfGenerating ? '#f87171' : '#dc2626',
-            color: 'white',
-            fontWeight: '600',
-            padding: '0.5rem 1rem',
-            borderRadius: '0.5rem',
-            border: 'none',
-            cursor: isPdfGenerating ? 'not-allowed' : 'pointer',
-            transition: 'background-color 0.2s',
-            opacity: isPdfGenerating ? 0.7 : 1
-          }}
-        >
-          {isPdfGenerating ? (
-            <>
-              <span style={{ marginRight: '0.5rem' }}>⏳</span>
-              Generating...
-            </>
-          ) : (
-            '📄 Download PDF'
-          )}
-        </button>
-        <button 
-          className="btn btn-download-txt"
-          onClick={downloadTxtReport}
-          style={{
-            backgroundColor: '#16a34a',
-            color: 'white',
-            fontWeight: '600',
-            padding: '0.5rem 1rem',
-            borderRadius: '0.5rem',
-            border: 'none',
-            cursor: 'pointer',
-            transition: 'background-color 0.2s'
-          }}
-        >
-          📝 Download Text
-        </button>
       </div>
     </main>
   )
