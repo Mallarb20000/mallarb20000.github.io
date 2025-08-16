@@ -1398,6 +1398,9 @@ body {
 .focus-visible\:ring-blue-500:focus-visible { --tw-ring-color: #3b82f6; }
 .print\:hidden { display: none; }
 .flex-wrap { flex-wrap: wrap; }
+.animate-spin { animation: spin 1s linear infinite; }
+.inline-block { display: inline-block; }
+.disabled\:bg-red-400:disabled { background-color: #f87171; }
 
 /* Responsive utilities */
 @media (min-width: 640px) {

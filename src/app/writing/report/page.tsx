@@ -490,18 +490,86 @@ Report Date: ${date}
 
       </div>
       
-      <div className="mt-8 flex flex-wrap gap-4 justify-center print:hidden">
+      <div className="action-buttons" style={{
+        marginTop: '2rem',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '1rem',
+        justifyContent: 'center',
+        '@media print': { display: 'none' }
+      }}>
         <button 
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+          className="btn btn-primary"
           onClick={() => window.history.back()}
+          style={{
+            backgroundColor: '#2563eb',
+            color: 'white',
+            fontWeight: '600',
+            padding: '0.5rem 1rem',
+            borderRadius: '0.5rem',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s'
+          }}
         >
           ← Back to Writing
         </button>
         <button 
-          className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+          className="btn btn-secondary"
           onClick={() => window.print()}
+          style={{
+            backgroundColor: '#4b5563',
+            color: 'white',
+            fontWeight: '600',
+            padding: '0.5rem 1rem',
+            borderRadius: '0.5rem',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s'
+          }}
         >
           🖨️ Print Report
+        </button>
+        <button 
+          className="btn btn-download-pdf"
+          onClick={downloadPDF}
+          disabled={isPdfGenerating}
+          style={{
+            backgroundColor: isPdfGenerating ? '#f87171' : '#dc2626',
+            color: 'white',
+            fontWeight: '600',
+            padding: '0.5rem 1rem',
+            borderRadius: '0.5rem',
+            border: 'none',
+            cursor: isPdfGenerating ? 'not-allowed' : 'pointer',
+            transition: 'background-color 0.2s',
+            opacity: isPdfGenerating ? 0.7 : 1
+          }}
+        >
+          {isPdfGenerating ? (
+            <>
+              <span style={{ marginRight: '0.5rem' }}>⏳</span>
+              Generating...
+            </>
+          ) : (
+            '📄 Download PDF'
+          )}
+        </button>
+        <button 
+          className="btn btn-download-txt"
+          onClick={downloadTxtReport}
+          style={{
+            backgroundColor: '#16a34a',
+            color: 'white',
+            fontWeight: '600',
+            padding: '0.5rem 1rem',
+            borderRadius: '0.5rem',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s'
+          }}
+        >
+          📝 Download Text
         </button>
       </div>
     </main>
