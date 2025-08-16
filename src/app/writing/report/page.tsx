@@ -2,6 +2,12 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { ReportHeader } from './components/ReportHeader'
+import { OverallAssessment } from './components/OverallAssessment'
+import { CollapsibleSection } from './components/CollapsibleSection'
+import { BandScores } from './components/BandScores'
+import { EssayStructureAnalysis } from './components/EssayStructureAnalysis'
+import { EssayDisplay } from './components/EssayDisplay'
 import './report.css'
 
 // Import jsPDF for PDF generation
@@ -85,32 +91,6 @@ interface AnalysisResult {
 }
 
 // --- COMPONENTS ---
-
-const BandScoreCard: React.FC<{
-  title: string
-  score: number
-  justification: string
-  icon: React.ReactNode
-}> = ({ title, score, justification, icon }) => {
-  const getBandClass = (score: number) => {
-    if (score >= 7) return 'band-high'
-    if (score >= 5) return 'band-medium'
-    return 'band-low'
-  }
-
-  return (
-    <div className={`band-score-card ${getBandClass(score)}`}>
-      <div className="score-header">
-        <div className="score-icon">{icon}</div>
-        <div className="score-info">
-          <h3>{title}</h3>
-          <div className="score-value">Band {score}</div>
-        </div>
-      </div>
-      <p className="score-justification">{justification}</p>
-    </div>
-  )
-}
 
 const EssaySectionAnalysis: React.FC<{
   section: EssaySection | null
@@ -203,49 +183,6 @@ const EssaySectionAnalysis: React.FC<{
 }
 
 
-const OverallSummary: React.FC<{
-  overallBand: number
-  overallFeedback: string
-  wordCount: number
-  confidence: number
-}> = ({ overallBand, overallFeedback, wordCount, confidence }) => {
-  const getBandDescription = (band: number) => {
-    if (band >= 8) return "Excellent"
-    if (band >= 7) return "Good"
-    if (band >= 6) return "Competent"
-    if (band >= 5) return "Modest"
-    return "Limited"
-  }
-
-  return (
-    <div className="overall-summary">
-      <div className="summary-header">
-        <h2>Overall Assessment</h2>
-        <div className="overall-band">
-          <span className="band-label">Overall Band Score</span>
-          <span className="band-score">{overallBand}</span>
-          <span className="band-description">{getBandDescription(overallBand)}</span>
-        </div>
-      </div>
-      
-      <div className="summary-stats">
-        <div className="stat">
-          <span className="stat-label">Word Count</span>
-          <span className="stat-value">{wordCount}</span>
-        </div>
-        <div className="stat">
-          <span className="stat-label">Analysis Confidence</span>
-          <span className="stat-value">{Math.round(confidence * 100)}%</span>
-        </div>
-      </div>
-      
-      <div className="summary-feedback">
-        <h3>Overall Feedback</h3>
-        <p>{overallFeedback}</p>
-      </div>
-    </div>
-  )
-}
 
 export default function ReportPage() {
   const [analysisData, setAnalysisData] = useState<AnalysisResult | null>(null)
@@ -479,88 +416,28 @@ Report Date: ${date}
   }
 
   return (
-    <div className="report-page">
-        <div className="top-notice">
-          <div className="notice-content">
-            <span className="notice-icon">⚠️</span>
-            <span className="notice-text">
-              <strong>Important:</strong> Please download this report before refreshing or leaving the page.
-            </span>
-          </div>
-          <div className="top-download-buttons">
-            <button 
-              className="btn btn-download-pdf"
-              onClick={downloadPDF}
-              disabled={isPdfGenerating}
-            >
-              {isPdfGenerating ? (
-                <>
-                  <span className="spinner"></span>
-                  Generating PDF...
-                </>
-              ) : (
-                <>
-                  📄 Download PDF
-                </>
-              )}
-            </button>
-            <button 
-              className="btn btn-download-txt"
-              onClick={downloadTxtReport}
-            >
-              📝 Download Text
-            </button>
-          </div>
-        </div>
-
-        <div id="report-content" className="report-content">
-          <div className="report-header">
-            <h1>IELTS Writing Analysis Report</h1>
-            <p className="report-date">
-              Generated on {new Date(analysisData.timestamp).toLocaleDateString()}
-            </p>
-          </div>
+    <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 font-sans text-slate-800 bg-slate-50 min-h-screen">
+      <ReportHeader 
+        timestamp={analysisData.timestamp} 
+        onDownloadTxt={downloadTxtReport}
+        onDownloadPdf={downloadPDF}
+        isPdfGenerating={isPdfGenerating}
+      />
+      <div id="report-content" className="space-y-8">
 
 
-        <OverallSummary
+        <OverallAssessment
           overallBand={analysisData.overallBand || 0}
           overallFeedback={analysisData.overallFeedback || 'No feedback available'}
           wordCount={analysisData.wordCount || 0}
           confidence={analysisData.metadata?.confidence || 0.5}
         />
 
-        <div className="band-scores-section">
-          <h2>IELTS Band Scores</h2>
-          <div className="band-scores-grid">
-            <BandScoreCard
-              title="Task Response"
-              score={analysisData.bandScores?.taskResponse?.score || 0}
-              justification={analysisData.bandScores?.taskResponse?.justification || 'Not available'}
-              icon={<span>📝</span>}
-            />
-            <BandScoreCard
-              title="Coherence & Cohesion"
-              score={analysisData.bandScores?.coherenceCohesion?.score || 0}
-              justification={analysisData.bandScores?.coherenceCohesion?.justification || 'Not available'}
-              icon={<span>🔗</span>}
-            />
-            <BandScoreCard
-              title="Lexical Resource"
-              score={analysisData.bandScores?.lexicalResource?.score || 0}
-              justification={analysisData.bandScores?.lexicalResource?.justification || 'Not available'}
-              icon={<span>📚</span>}
-            />
-            <BandScoreCard
-              title="Grammar & Accuracy"
-              score={analysisData.bandScores?.grammarAccuracy?.score || 0}
-              justification={analysisData.bandScores?.grammarAccuracy?.justification || 'Not available'}
-              icon={<span>✏️</span>}
-            />
-          </div>
-        </div>
+        <CollapsibleSection title="IELTS Band Scores">
+          <BandScores bandScores={analysisData.bandScores} />
+        </CollapsibleSection>
 
-        <div className="structural-analysis-section">
-          <h2>Essay Structure Analysis</h2>
+        <CollapsibleSection title="Essay Structure Analysis">
           <div className="essay-sections-grid">
             {/* Check if we have new format, otherwise convert from legacy */}
             {analysisData.structuralAnalysis?.introduction || analysisData.structuralAnalysis?.bodyParagraphs || analysisData.structuralAnalysis?.conclusion ? (
@@ -598,145 +475,35 @@ Report Date: ${date}
               </>
             ) : (
               /* Legacy format fallback */
-              <div className="legacy-structural-analysis">
-                <div className="structural-feedback-grid">
-                  <div className="structural-feedback">
-                    <div className="feedback-header">
-                      <h3>Hook Sentence</h3>
-                      <span className={`score-badge ${getScoreClass(analysisData.structuralAnalysis?.hook?.score || 'needs_work')}`}>
-                        {(analysisData.structuralAnalysis?.hook?.score || 'needs_work').replace('_', ' ')}
-                      </span>
-                    </div>
-                    
-                    {analysisData.structuralAnalysis?.hook?.text && (
-                      <div className="identified-text">
-                        <h4>Identified Text:</h4>
-                        <blockquote>"{analysisData.structuralAnalysis.hook.text}"</blockquote>
-                      </div>
-                    )}
-                    
-                    <div className="feedback-content">
-                      <h4>Assessment:</h4>
-                      <p>{analysisData.structuralAnalysis?.hook?.feedback || 'No feedback available'}</p>
-                    </div>
-                    
-                    <div className="improvement-tips">
-                      <h4>How to Improve:</h4>
-                      <ul>
-                        {improvementTips.hook.map((tip, index) => (
-                          <li key={index}>{tip}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-
-                  <div className="structural-feedback">
-                    <div className="feedback-header">
-                      <h3>Thesis Statement</h3>
-                      <span className={`score-badge ${getScoreClass(analysisData.structuralAnalysis?.thesis?.score || 'needs_work')}`}>
-                        {(analysisData.structuralAnalysis?.thesis?.score || 'needs_work').replace('_', ' ')}
-                      </span>
-                    </div>
-                    
-                    {analysisData.structuralAnalysis?.thesis?.text && (
-                      <div className="identified-text">
-                        <h4>Identified Text:</h4>
-                        <blockquote>"{analysisData.structuralAnalysis.thesis.text}"</blockquote>
-                      </div>
-                    )}
-                    
-                    <div className="feedback-content">
-                      <h4>Assessment:</h4>
-                      <p>{analysisData.structuralAnalysis?.thesis?.feedback || 'No feedback available'}</p>
-                    </div>
-                    
-                    <div className="improvement-tips">
-                      <h4>How to Improve:</h4>
-                      <ul>
-                        {improvementTips.thesis.map((tip, index) => (
-                          <li key={index}>{tip}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-
-                  {analysisData.structuralAnalysis?.topicSentences && analysisData.structuralAnalysis.topicSentences.length > 0 && (
-                    <div className="structural-feedback">
-                      <div className="feedback-header">
-                        <h3>Topic Sentences</h3>
-                        <span className="score-badge score-needs-work">Identified</span>
-                      </div>
-                      
-                      <div className="topic-sentences-list">
-                        {analysisData.structuralAnalysis.topicSentences.map((ts, index) => (
-                          <div key={index} className="topic-sentence-item">
-                            <strong>Paragraph {ts.paragraph}:</strong> "{ts.text}"
-                            <p className="ts-feedback">{ts.feedback}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <EssayStructureAnalysis structuralAnalysis={analysisData.structuralAnalysis} />
             )}
           </div>
-        </div>
+        </CollapsibleSection>
 
-        <div className="essay-display-section">
-          <h2>Your Essay</h2>
-          <div className="essay-text-display">
-            <div className="essay-question-inline">
-              <p className="essay-paragraph"><strong>Question:</strong> {essayPrompt}</p>
-            </div>
-            <p><strong>Word Count:</strong> {analysisData.wordCount || 0} words</p>
-            <div className="essay-content">
-              {essayText.split('\n').map((paragraph, index) => (
-                <p key={index} className="essay-paragraph">
-                  {paragraph}
-                </p>
-              ))}
-            </div>
-          </div>
-        </div>
+        <CollapsibleSection title="Your Essay">
+          <EssayDisplay 
+            prompt={essayPrompt} 
+            essayText={essayText} 
+            wordCount={analysisData.wordCount || 0}
+          />
+        </CollapsibleSection>
 
-        
-
-        <div className="action-buttons">
-          <button 
-            className="btn btn-primary"
-            onClick={() => window.history.back()}
-          >
-            ← Back to Writing
-          </button>
-          <button 
-            className="btn btn-secondary"
-            onClick={() => window.print()}
-          >
-            🖨️ Print Report
-          </button>
-          <button 
-            className="btn btn-download-pdf"
-            onClick={downloadPDF}
-            disabled={isPdfGenerating}
-          >
-            {isPdfGenerating ? (
-              <>
-                <span className="spinner"></span>
-                Generating...
-              </>
-            ) : (
-              '📄 Download PDF'
-            )}
-          </button>
-          <button 
-            className="btn btn-download-txt"
-            onClick={downloadTxtReport}
-          >
-            📝 Download Text
-          </button>
-        </div>
       </div>
-    </div>
+      
+      <div className="mt-8 flex flex-wrap gap-4 justify-center print:hidden">
+        <button 
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+          onClick={() => window.history.back()}
+        >
+          ← Back to Writing
+        </button>
+        <button 
+          className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+          onClick={() => window.print()}
+        >
+          🖨️ Print Report
+        </button>
+      </div>
+    </main>
   )
 }
