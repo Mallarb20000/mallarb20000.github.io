@@ -2,15 +2,13 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { getRandomQuestion, Question as APIQuestion } from '../../services/questionsAPI';
+import Modal from '../../components/Modal';
 import './writing.css';
 
 // --- TYPE DEFINITIONS ---
 type AnalysisState = 'initial' | 'loading' | 'analyzed';
 
-interface Question {
-  id: number;
-  question: string;
-}
 
 interface PlanningAnswers {
   typeOfEssay: string;
@@ -21,24 +19,6 @@ interface PlanningAnswers {
   conclusion: string;
 }
 
-// Sample IELTS questions
-const SAMPLE_QUESTIONS: Question[] = [
-  {
-    id: 1,
-    question:
-      'Some people think that all university students should study whatever they like. Others believe that they should only be allowed to study subjects that will be useful in the future, such as those related to science and technology. Discuss both views and give your own opinion.',
-  },
-  {
-    id: 2,
-    question:
-      'In many countries, the amount of crime is increasing. What do you think are the main causes of crime? How can we deal with those causes?',
-  },
-  {
-    id: 3,
-    question:
-      'Some people say that advertising encourages us to buy things that we really do not need. Others say that advertisements tell us about new products that may improve our lives. Which viewpoint do you agree with?',
-  },
-];
 
 // --- LAYOUT COMPONENTS ---
 const MainContent: React.FC<{
@@ -47,8 +27,9 @@ const MainContent: React.FC<{
   onAnalyze: () => void;
   onClear: () => void;
   wordCount: number;
-  currentQuestion: Question;
+  currentQuestion: APIQuestion;
   onChangeQuestion: () => void;
+  isLoadingQuestion: boolean;
   isPlanningComplete: boolean;
   hasLastAnalysis: boolean;
 }> = ({
@@ -61,36 +42,49 @@ const MainContent: React.FC<{
   onChangeQuestion,
   isPlanningComplete,
   hasLastAnalysis,
+  isLoadingQuestion,
 }) => (
   <main className="main-content">
     <div className="prompt-box">
       <div className="prompt-header">
         <h2>IELTS WRITING TASK 2</h2>
-        <button className="btn btn-outline" onClick={onChangeQuestion}>
-          Change Question
+        <button className="btn btn-outline" onClick={onChangeQuestion} disabled={isLoadingQuestion}>
+          {isLoadingQuestion ? 'Loading...' : 'Change Question'}
         </button>
       </div>
-      <p>{currentQuestion.question}</p>
-      <div className="editor-actions" style={{ marginTop: '1rem' }}>
-        <span className="word-count">{wordCount} words</span>
-        <button
-          className="btn btn-primary"
-          onClick={onAnalyze}
-          disabled={wordCount === 0}
-        >
-          Analyze Essay
-        </button>
-        <button className="btn btn-secondary" onClick={onClear}>
-          Clear
-        </button>
-        {hasLastAnalysis && (
-          <button
-            className="btn btn-outline"
-            onClick={() => window.open('/writing/report', '_blank')}
-          >
-            View Last Report
+      <div className="prompt-content">
+        <div className="prompt-text">
+          <p>{currentQuestion.question}</p>
+        </div>
+        <div className="prompt-actions">
+          <button className="btn btn-secondary btn-small" onClick={onClear}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6"/>
+            </svg>
+            Clear
           </button>
-        )}
+          {hasLastAnalysis && (
+            <button
+              className="btn btn-outline btn-small"
+              onClick={() => window.open('/writing/report', '_blank')}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+              </svg>
+              View Report
+            </button>
+          )}
+          <button
+            className="btn btn-primary btn-small"
+            onClick={onAnalyze}
+            disabled={wordCount === 0}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 0 0 1.946-.806 3.42 3.42 0 0 1 4.438 0 3.42 3.42 0 0 0 1.946.806 3.42 3.42 0 0 1 3.138 3.138 3.42 3.42 0 0 0 .806 1.946 3.42 3.42 0 0 1 0 4.438 3.42 3.42 0 0 0-.806 1.946 3.42 3.42 0 0 1-3.138 3.138 3.42 3.42 0 0 0-1.946.806 3.42 3.42 0 0 1-4.438 0 3.42 3.42 0 0 0-1.946-.806 3.42 3.42 0 0 1-3.138-3.138 3.42 3.42 0 0 0-.806-1.946 3.42 3.42 0 0 1 0-4.438 3.42 3.42 0 0 0 .806-1.946 3.42 3.42 0 0 1 3.138-3.138z"/>
+            </svg>
+            Analyze
+          </button>
+        </div>
       </div>
     </div>
     <div className="editor-container">
@@ -124,6 +118,9 @@ const MainContent: React.FC<{
           <p>Please complete planning phase first</p>
         </div>
       )}
+      <div className="editor-footer">
+        <span className="word-count">{wordCount} words</span>
+      </div>
     </div>
   </main>
 );
@@ -257,28 +254,46 @@ export default function WritingPage() {
     conclusion: ''
   })
   const [analysisState, setAnalysisState] = useState<AnalysisState>('initial')
-  const [currentQuestion, setCurrentQuestion] = useState<Question>(SAMPLE_QUESTIONS[0])
+  const [currentQuestion, setCurrentQuestion] = useState<APIQuestion>({
+    id: 1,
+    question: "Loading question..."
+  })
   const [lastAnalysisResult, setLastAnalysisResult] = useState<any>(null)
   const [isPlanningVisible, setIsPlanningVisible] = useState(true)
 
-  // Load state from sessionStorage on mount
+  // Load initial question from API
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedState = sessionStorage.getItem('writingState');
-      if (storedState) {
-        try {
-          const parsed = JSON.parse(storedState);
-          setEssayText(parsed.essayText || '');
-          setPlanningAnswers(parsed.planningAnswers || planningAnswers);
-          setCurrentQuestion(parsed.currentQuestion || SAMPLE_QUESTIONS[0]);
-          setAnalysisState(parsed.analysisState || 'initial');
-        } catch (e) {
-          console.error('Failed to parse saved state:', e);
+    const loadInitialQuestion = async () => {
+      if (typeof window !== 'undefined') {
+        const storedState = sessionStorage.getItem('writingState');
+        if (storedState) {
+          try {
+            const parsed = JSON.parse(storedState);
+            setEssayText(parsed.essayText || '');
+            setPlanningAnswers(parsed.planningAnswers || planningAnswers);
+            setAnalysisState(parsed.analysisState || 'initial');
+            // Only use stored question if it exists and has valid API data, otherwise load new one
+            if (parsed.currentQuestion && parsed.currentQuestion.id !== 1) {
+              setCurrentQuestion(parsed.currentQuestion);
+              return;
+            }
+          } catch (e) {
+            console.error('Failed to parse saved state:', e);
+          }
         }
       }
-     
+      
+      // Load fresh question from API
+      try {
+        const question = await getRandomQuestion()
+        setCurrentQuestion(question)
+      } catch (error) {
+        console.error('Failed to load initial question:', error)
+      }
     }
-  }, []);
+    
+    loadInitialQuestion()
+  }, [])
 
   // Save state on changes
   useEffect(() => {
@@ -294,8 +309,6 @@ export default function WritingPage() {
       );
     }
   }, [essayText, planningAnswers, currentQuestion, analysisState]);
-
-  
 
   const handleAnalyze = async () => {
     if (wordCount === 0) return;
@@ -348,18 +361,64 @@ export default function WritingPage() {
     }
   };
 
-  const handleClear = () => {
-    const confirmed = window.confirm(
-      'Are you sure you want to clear your essay?\n\nThis will delete all your written content and cannot be undone.'
-    );
-    if (confirmed) {
-      setEssayText('');
-      setAnalysisState('initial');
-    }
-  };
+  const handleClearClick = () => {
+    setShowClearModal(true)
+  }
 
-  const handleChangeQuestion = () => {
-    setCurrentQuestion(SAMPLE_QUESTIONS[Math.floor(Math.random() * SAMPLE_QUESTIONS.length)])
+  const handleConfirmClear = () => {
+    setShowClearModal(false)
+    setEssayText('')
+    setAnalysisState('initial')
+  }
+
+  const handleCancelClear = () => {
+    setShowClearModal(false)
+  }
+
+  const [isLoadingQuestion, setIsLoadingQuestion] = useState(false)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [showClearModal, setShowClearModal] = useState(false)
+
+  const handleChangeQuestionClick = () => {
+    setShowConfirmModal(true)
+  }
+
+  const handleConfirmChangeQuestion = async () => {
+    setShowConfirmModal(false)
+    setIsLoadingQuestion(true)
+    
+    try {
+      // Get new question
+      const newQuestion = await getRandomQuestion()
+      
+      // Reset everything
+      setCurrentQuestion(newQuestion)
+      setEssayText('')
+      setPlanningAnswers({
+        typeOfEssay: '',
+        hookSentence: '',
+        thesisSentence: '',
+        topicSentences: '',
+        linkToThesis: '',
+        conclusion: ''
+      })
+      setAnalysisState('initial')
+      
+      // Clear sessionStorage
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('writingState')
+        sessionStorage.removeItem('lastAnalysis')
+      }
+    } catch (error) {
+      console.error('Failed to change question:', error)
+      alert('Failed to load new question. Please try again.')
+    } finally {
+      setIsLoadingQuestion(false)
+    }
+  }
+
+  const handleCancelChangeQuestion = () => {
+    setShowConfirmModal(false)
   }
 
   const wordCount = useMemo(() => {
@@ -385,12 +444,13 @@ export default function WritingPage() {
         essayText={essayText}
         onEssayChange={setEssayText}
         onAnalyze={handleAnalyze}
-        onClear={handleClear}
+        onClear={handleClearClick}
         wordCount={wordCount}
         currentQuestion={currentQuestion}
-        onChangeQuestion={handleChangeQuestion}
+        onChangeQuestion={handleChangeQuestionClick}
         isPlanningComplete={isPlanningComplete}
         hasLastAnalysis={hasLastAnalysis}
+        isLoadingQuestion={isLoadingQuestion}
       />
       
       {/* Mobile Toggle Button */}
@@ -423,6 +483,68 @@ export default function WritingPage() {
           </svg>
         </button>
       </div>
+
+      {/* Change Question Modal */}
+      <Modal
+        isOpen={showConfirmModal}
+        onClose={handleCancelChangeQuestion}
+        title="Change Question"
+        iconColor="warning"
+        icon={
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+          </svg>
+        }
+        buttons={[
+          {
+            text: 'Cancel',
+            onClick: handleCancelChangeQuestion,
+            variant: 'secondary'
+          },
+          {
+            text: 'Yes, Change Question',
+            onClick: handleConfirmChangeQuestion,
+            variant: 'primary',
+            disabled: isLoadingQuestion,
+            loading: isLoadingQuestion
+          }
+        ]}
+      >
+        <div className="modal-message">
+          <p className="primary-message">Are you sure you want the question changed?</p>
+          <p className="secondary-message">All the progress will be lost.</p>
+        </div>
+      </Modal>
+
+      {/* Clear Essay Modal */}
+      <Modal
+        isOpen={showClearModal}
+        onClose={handleCancelClear}
+        title="Clear Essay"
+        iconColor="danger"
+        icon={
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6"/>
+          </svg>
+        }
+        buttons={[
+          {
+            text: 'Cancel',
+            onClick: handleCancelClear,
+            variant: 'secondary'
+          },
+          {
+            text: 'Yes, Clear Essay',
+            onClick: handleConfirmClear,
+            variant: 'primary'
+          }
+        ]}
+      >
+        <div className="modal-message">
+          <p className="primary-message">Are you sure you want to clear your essay?</p>
+          <p className="secondary-message">This will delete all your written content and cannot be undone.</p>
+        </div>
+      </Modal>
     </div>
   );
 }
