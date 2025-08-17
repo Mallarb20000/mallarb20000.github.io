@@ -239,123 +239,237 @@ export default function ReportPage() {
             body { 
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
               line-height: 1.4;
-              color: #333;
+              color: #1e293b;
+              background-color: #f8fafc;
               max-width: 800px;
               margin: 0 auto;
               padding: 15px;
               font-size: 13px;
             }
             h1 { 
-              color: #2563eb; 
+              color: #0f172a; 
               text-align: center; 
-              border-bottom: 2px solid #2563eb; 
-              padding-bottom: 0.5rem; 
-              margin: 0 0 1rem 0;
+              border-bottom: 3px solid #2563eb; 
+              padding-bottom: 0.75rem; 
+              margin: 0 0 1.5rem 0;
               font-size: 1.8rem;
+              font-weight: 700;
             }
             h2 { 
-              color: #2563eb; 
-              margin: 1rem 0 0.5rem 0; 
-              font-size: 1.2rem;
+              color: #0f172a; 
+              margin: 1.5rem 0 0.75rem 0; 
+              font-size: 1.25rem;
+              font-weight: 700;
               page-break-after: avoid;
             }
             h3 { 
-              color: #2563eb; 
+              color: #1e293b; 
               margin: 0.75rem 0 0.25rem 0; 
               font-size: 1rem;
+              font-weight: 700;
             }
             h4 { 
-              color: #666; 
+              color: #475569; 
               margin: 0.5rem 0 0.25rem 0; 
               font-size: 0.9rem;
+              font-weight: 600;
             }
-            p { margin: 0.25rem 0; }
+            p { 
+              margin: 0.25rem 0;
+              color: #475569;
+              line-height: 1.5;
+            }
+            
+            /* Overall Assessment Section */
             .score-section { 
-              background: #f8fafc; 
-              padding: 0.75rem; 
-              border-radius: 6px; 
-              margin: 0.5rem 0; 
+              background: white; 
+              padding: 1rem; 
+              border-radius: 12px; 
+              margin: 0.75rem 0; 
+              box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+              border: 1px solid #e2e8f0;
               page-break-inside: avoid;
             }
             .overall-score { 
-              font-size: 1.5rem; 
-              font-weight: bold; 
-              color: #2563eb; 
+              font-size: 3rem; 
+              font-weight: 700; 
+              color: #16a34a; 
               text-align: center; 
-              margin: 0.25rem 0;
+              margin: 0.5rem 0;
+              line-height: 1;
             }
+            
+            /* Band Scores Grid */
             .band-scores { 
               display: grid; 
               grid-template-columns: repeat(2, 1fr); 
-              gap: 0.5rem; 
-              margin: 0.5rem 0; 
+              gap: 0.75rem; 
+              margin: 0.75rem 0; 
             }
             .band-score { 
               background: white; 
-              padding: 0.75rem; 
-              border-radius: 6px; 
+              padding: 1rem; 
+              border-radius: 12px; 
               border: 1px solid #e2e8f0; 
+              box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
               page-break-inside: avoid;
             }
             .band-score h3 { 
-              margin: 0 0 0.25rem 0; 
+              margin: 0 0 0.5rem 0; 
               font-size: 0.9rem;
+              color: #1e293b;
+              font-weight: 700;
             }
-            .band-score div { 
-              font-size: 1.2rem; 
-              font-weight: bold; 
-              color: #2563eb; 
-              margin: 0.25rem 0;
+            .band-score .score-display { 
+              font-size: 1.5rem; 
+              font-weight: 700; 
+              margin: 0.5rem 0;
+              padding: 0.5rem;
+              border-radius: 8px;
+              text-align: center;
+            }
+            .score-high { 
+              background-color: #dcfce7; 
+              color: #166534; 
+              border: 1px solid #16a34a;
+            }
+            .score-medium { 
+              background-color: #fef3c7; 
+              color: #92400e; 
+              border: 1px solid #d97706;
+            }
+            .score-low { 
+              background-color: #fee2e2; 
+              color: #991b1b; 
+              border: 1px solid #dc2626;
             }
             .band-score p { 
               font-size: 0.85rem; 
-              margin: 0.25rem 0 0 0;
+              margin: 0.5rem 0 0 0;
+              color: #475569;
             }
+            
+            /* Essay Content */
             .essay-content { 
-              background: #f9fafb; 
-              padding: 1rem; 
-              border-radius: 6px; 
-              margin: 0.5rem 0; 
+              background: white; 
+              padding: 1.25rem; 
+              border-radius: 12px; 
+              margin: 0.75rem 0; 
+              border: 1px solid #e2e8f0;
+              box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
             }
+            
+            /* Question Box */
             .question-box { 
-              background: #fef3c7; 
-              padding: 1rem; 
-              border-radius: 6px; 
-              border-left: 3px solid #f59e0b; 
-              margin: 0.5rem 0; 
+              background: linear-gradient(135deg, #fef3c7, #fed7aa); 
+              padding: 1.25rem; 
+              border-radius: 12px; 
+              border: 2px solid #f59e0b; 
+              margin: 0.75rem 0; 
+              box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
             }
+            .question-box h3 { 
+              color: #92400e; 
+              font-size: 1rem;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              margin: 0 0 0.5rem 0;
+            }
+            .question-box p { 
+              color: #1e293b;
+              font-weight: 500;
+              font-size: 1rem;
+              line-height: 1.6;
+            }
+            
+            /* Structure Analysis */
+            .structure-score { 
+              padding: 0.5rem;
+              border-radius: 6px;
+              text-align: center;
+              font-weight: 600;
+              font-size: 0.85rem;
+              margin: 0.25rem 0;
+            }
+            .structure-good { 
+              background-color: #dcfce7; 
+              color: #166534; 
+            }
+            .structure-needs-work { 
+              background-color: #fef3c7; 
+              color: #92400e; 
+            }
+            .structure-poor { 
+              background-color: #fee2e2; 
+              color: #991b1b; 
+            }
+            
+            /* Blockquotes */
             blockquote { 
               background: #f1f5f9; 
-              padding: 0.5rem; 
-              border-left: 3px solid #64748b; 
-              margin: 0.25rem 0; 
+              padding: 0.75rem; 
+              border-left: 4px solid #64748b; 
+              margin: 0.5rem 0; 
               font-style: italic; 
               font-size: 0.9rem;
+              border-radius: 0 6px 6px 0;
+              color: #475569;
             }
+            
+            /* Lists */
             ul { 
-              margin: 0.25rem 0; 
-              padding-left: 1.2rem; 
+              margin: 0.5rem 0; 
+              padding-left: 1.5rem; 
             }
             li { 
-              margin: 0.1rem 0; 
+              margin: 0.25rem 0; 
               font-size: 0.85rem;
+              color: #475569;
             }
+            
+            /* Warning Notice */
+            .warning-notice {
+              background: linear-gradient(135deg, #fef3c7, #fed7aa);
+              border: 1px solid #f59e0b;
+              border-radius: 8px;
+              padding: 1rem;
+              margin: 1rem 0;
+              display: flex;
+              align-items: center;
+              gap: 0.75rem;
+            }
+            .warning-notice-icon {
+              font-size: 1.25rem;
+            }
+            .warning-notice-text {
+              color: #92400e;
+              font-size: 0.9rem;
+              font-weight: 500;
+            }
+            
             hr { 
-              margin: 1rem 0; 
+              margin: 1.5rem 0; 
               border: none; 
-              border-top: 1px solid #ddd; 
+              border-top: 1px solid #e2e8f0; 
             }
+            
             @media print {
               body { 
                 margin: 0; 
                 padding: 10px; 
                 font-size: 11px;
+                background-color: white;
               }
               .no-print { display: none; }
-              h1 { font-size: 1.6rem; }
+              h1 { font-size: 1.5rem; margin-bottom: 1rem; }
               h2 { font-size: 1.1rem; }
-              .overall-score { font-size: 1.3rem; }
-              .band-score div { font-size: 1.1rem; }
+              .overall-score { font-size: 2.5rem; }
+              .band-score .score-display { font-size: 1.2rem; }
+              .score-section, .band-score, .essay-content, .question-box { 
+                box-shadow: none; 
+                border: 1px solid #e2e8f0;
+              }
             }
           </style>
         </head>
@@ -405,6 +519,21 @@ export default function ReportPage() {
     const overallBand = analysisData?.overallBand || 0
     const wordCount = analysisData?.wordCount || 0
     
+    const getScoreClass = (score: number) => {
+      if (score >= 7) return 'score-high'
+      if (score >= 5) return 'score-medium'
+      return 'score-low'
+    }
+    
+    const getStructureScoreClass = (score: string) => {
+      switch (score) {
+        case 'good': return 'structure-good'
+        case 'needs_work': return 'structure-needs-work'
+        case 'poor': return 'structure-poor'
+        default: return 'structure-needs-work'
+      }
+    }
+    
     return `
       <h1>IELTS Writing Analysis Report</h1>
       <p style="text-align: center; color: #64748b; margin-bottom: 1rem; font-size: 0.9rem;">Generated on ${date}</p>
@@ -420,22 +549,22 @@ export default function ReportPage() {
       <div class="band-scores">
         <div class="band-score">
           <h3>📝 Task Response</h3>
-          <div style="font-size: 1.5rem; font-weight: bold; color: #2563eb;">Band ${analysisData?.bandScores?.taskResponse?.score || 0}</div>
+          <div class="score-display ${getScoreClass(analysisData?.bandScores?.taskResponse?.score || 0)}">Band ${analysisData?.bandScores?.taskResponse?.score || 0}</div>
           <p>${analysisData?.bandScores?.taskResponse?.justification || 'Not available'}</p>
         </div>
         <div class="band-score">
           <h3>🔗 Coherence & Cohesion</h3>
-          <div style="font-size: 1.5rem; font-weight: bold; color: #2563eb;">Band ${analysisData?.bandScores?.coherenceCohesion?.score || 0}</div>
+          <div class="score-display ${getScoreClass(analysisData?.bandScores?.coherenceCohesion?.score || 0)}">Band ${analysisData?.bandScores?.coherenceCohesion?.score || 0}</div>
           <p>${analysisData?.bandScores?.coherenceCohesion?.justification || 'Not available'}</p>
         </div>
         <div class="band-score">
           <h3>📚 Lexical Resource</h3>
-          <div style="font-size: 1.5rem; font-weight: bold; color: #2563eb;">Band ${analysisData?.bandScores?.lexicalResource?.score || 0}</div>
+          <div class="score-display ${getScoreClass(analysisData?.bandScores?.lexicalResource?.score || 0)}">Band ${analysisData?.bandScores?.lexicalResource?.score || 0}</div>
           <p>${analysisData?.bandScores?.lexicalResource?.justification || 'Not available'}</p>
         </div>
         <div class="band-score">
           <h3>✏️ Grammar & Accuracy</h3>
-          <div style="font-size: 1.5rem; font-weight: bold; color: #2563eb;">Band ${analysisData?.bandScores?.grammarAccuracy?.score || 0}</div>
+          <div class="score-display ${getScoreClass(analysisData?.bandScores?.grammarAccuracy?.score || 0)}">Band ${analysisData?.bandScores?.grammarAccuracy?.score || 0}</div>
           <p>${analysisData?.bandScores?.grammarAccuracy?.justification || 'Not available'}</p>
         </div>
       </div>
@@ -444,14 +573,14 @@ export default function ReportPage() {
       <div class="band-scores">
         <div class="band-score">
           <h3>🎯 Hook Sentence</h3>
-          <div>Score: ${analysisData?.structuralAnalysis?.hook?.score?.toUpperCase().replace('_', ' ') || 'NEEDS WORK'}</div>
+          <div class="structure-score ${getStructureScoreClass(analysisData?.structuralAnalysis?.hook?.score || 'needs_work')}">${analysisData?.structuralAnalysis?.hook?.score?.toUpperCase().replace('_', ' ') || 'NEEDS WORK'}</div>
           ${analysisData?.structuralAnalysis?.hook?.text ? `<blockquote>"${analysisData.structuralAnalysis.hook.text}"</blockquote>` : ''}
           <p>${analysisData?.structuralAnalysis?.hook?.feedback || 'No feedback available'}</p>
         </div>
 
         <div class="band-score">
           <h3>📝 Thesis Statement</h3>
-          <div>Score: ${analysisData?.structuralAnalysis?.thesis?.score?.toUpperCase().replace('_', ' ') || 'NEEDS WORK'}</div>
+          <div class="structure-score ${getStructureScoreClass(analysisData?.structuralAnalysis?.thesis?.score || 'needs_work')}">${analysisData?.structuralAnalysis?.thesis?.score?.toUpperCase().replace('_', ' ') || 'NEEDS WORK'}</div>
           ${analysisData?.structuralAnalysis?.thesis?.text ? `<blockquote>"${analysisData.structuralAnalysis.thesis.text}"</blockquote>` : ''}
           <p>${analysisData?.structuralAnalysis?.thesis?.feedback || 'No feedback available'}</p>
         </div>
