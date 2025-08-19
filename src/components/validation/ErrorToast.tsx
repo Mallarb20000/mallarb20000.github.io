@@ -32,7 +32,8 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
     ...warnings.map(w => ({ ...w, category: 'warning' as const }))
   ]
 
-  const visibleItems = allItems.filter(item => !dismissedItems.has(item.code))
+const visibleItems = allItems.filter(item => !dismissedItems.has(item.code))
+
 
   useEffect(() => {
     if (autoHide && visibleItems.length > 0) {
@@ -72,9 +73,11 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
 
   return (
     <div className={`fixed ${positionClasses[position]} z-50 max-w-sm ${className}`}>
-      <div className={`bg-white rounded-lg shadow-lg border border-gray-200 transform transition-all duration-300 ${
-        isVisible ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
-      }`}>
+      <div
+        className={`bg-white rounded-lg shadow-lg border border-gray-200 transform transition-all duration-300 ${
+          isVisible ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
+        }`}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-3 border-b border-gray-100">
           <div className="flex items-center gap-2">
@@ -82,14 +85,16 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
               <>
                 <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                 <span className="font-semibold text-red-700 text-sm">
-                  {criticalErrors.length} Critical Issue{criticalErrors.length !== 1 ? 's' : ''}
+                  {criticalErrors.length} Critical Issue
+                  {criticalErrors.length !== 1 ? 's' : ''}
                 </span>
               </>
             ) : (
               <>
                 <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
                 <span className="font-semibold text-yellow-700 text-sm">
-                  {minorIssues.length} Suggestion{minorIssues.length !== 1 ? 's' : ''}
+                  {minorIssues.length} Suggestion
+                  {minorIssues.length !== 1 ? 's' : ''}
                 </span>
               </>
             )}
@@ -161,6 +166,15 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
     </div>
   )
 }
+
+/* ----------------------------
+   ToastItem component
+----------------------------- */
+
+// Wrap your service types with discriminators
+type ErrorToastItem = ValidationError & { type: 'error' }
+type WarningToastItem = ValidationWarning & { type: 'warning' }
+export type ToastItemType = ErrorToastItem | WarningToastItem
 
 interface ToastItemProps {
   item: (ValidationError & { category: 'error' }) | (ValidationWarning & { category: 'warning' })
