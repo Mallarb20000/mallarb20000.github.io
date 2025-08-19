@@ -25,12 +25,14 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
   const [isVisible, setIsVisible] = useState(true)
   const [dismissedItems, setDismissedItems] = useState<Set<string>>(new Set())
 
-  const allItems: ToastItemType[] = [
-  ...errors.map(e => ({ ...e, type: 'error' as const } as ErrorToastItem)),
-  ...warnings.map(w => ({ ...w, type: 'warning' as const } as WarningToastItem))
+// Explicitly type each mapped item to avoid 'never'
+const allItems: ToastItemType[] = [
+  ...errors.map((e): ErrorToastItem => ({ ...e, type: 'error' })),
+  ...warnings.map((w): WarningToastItem => ({ ...w, type: 'warning' }))
 ]
 
-  const visibleItems = allItems.filter(item => !dismissedItems.has(item.code))
+const visibleItems = allItems.filter(item => !dismissedItems.has(item.code))
+
 
   useEffect(() => {
     if (autoHide && visibleItems.length > 0) {
