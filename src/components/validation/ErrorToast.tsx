@@ -26,9 +26,9 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
   const [dismissedItems, setDismissedItems] = useState<Set<string>>(new Set())
 
   const allItems: ToastItemType[] = [
-    ...errors.map(e => ({ ...e, type: 'error' as const })),
-    ...warnings.map(w => ({ ...w, type: 'warning' as const }))
-  ]
+  ...errors.map(e => ({ ...e, type: 'error' as const } as ErrorToastItem)),
+  ...warnings.map(w => ({ ...w, type: 'warning' as const } as WarningToastItem))
+]
 
   const visibleItems = allItems.filter(item => !dismissedItems.has(item.code))
 
