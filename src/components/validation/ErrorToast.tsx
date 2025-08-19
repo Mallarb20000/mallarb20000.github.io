@@ -25,7 +25,7 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
   const [isVisible, setIsVisible] = useState(true)
   const [dismissedItems, setDismissedItems] = useState<Set<string>>(new Set())
 
-  const allItems = [
+  const allItems: ToastItemType[] = [
     ...errors.map(e => ({ ...e, type: 'error' as const })),
     ...warnings.map(w => ({ ...w, type: 'warning' as const }))
   ]
@@ -62,17 +62,24 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
     'top-center': 'top-4 left-1/2 transform -translate-x-1/2'
   }
 
-  const criticalErrors = visibleItems.filter(item => item.type === 'error' && 'severity' in item && item.severity === 'error')
-  const minorIssues = visibleItems.filter(item => 
-    (item.type === 'error' && 'severity' in item && item.severity !== 'error') || 
-    item.type === 'warning'
+  const criticalErrors = visibleItems.filter(
+    (item): item is ErrorToastItem =>
+      item.type === 'error' && 'severity' in item && item.severity === 'error'
+  )
+
+  const minorIssues = visibleItems.filter(
+    (item): item is WarningToastItem | ErrorToastItem =>
+      (item.type === 'error' && 'severity' in item && item.severity !== 'error') ||
+      item.type === 'warning'
   )
 
   return (
     <div className={`fixed ${positionClasses[position]} z-50 max-w-sm ${className}`}>
-      <div className={`bg-white rounded-lg shadow-lg border border-gray-200 transform transition-all duration-300 ${
-        isVisible ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
-      }`}>
+      <div
+        className={`bg-white rounded-lg shadow-lg border border-gray-200 transform transition-all duration-300 ${
+          isVisible ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
+        }`}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-3 border-b border-gray-100">
           <div className="flex items-center gap-2">
@@ -80,14 +87,16 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
               <>
                 <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                 <span className="font-semibold text-red-700 text-sm">
-                  {criticalErrors.length} Critical Issue{criticalErrors.length !== 1 ? 's' : ''}
+                  {criticalErrors.length} Critical Issue
+                  {criticalErrors.length !== 1 ? 's' : ''}
                 </span>
               </>
             ) : (
               <>
                 <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
                 <span className="font-semibold text-yellow-700 text-sm">
-                  {minorIssues.length} Suggestion{minorIssues.length !== 1 ? 's' : ''}
+                  {minorIssues.length} Suggestion
+                  {minorIssues.length !== 1 ? 's' : ''}
                 </span>
               </>
             )}
@@ -98,7 +107,12 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
             aria-label="Dismiss all"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -160,8 +174,17 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
   )
 }
 
+/* ----------------------------
+   ToastItem component
+----------------------------- */
+
+// Wrap your service types with discriminators
+type ErrorToastItem = ValidationError & { type: 'error' }
+type WarningToastItem = ValidationWarning & { type: 'warning' }
+export type ToastItemType = ErrorToastItem | WarningToastItem
+
 interface ToastItemProps {
-  item: (ValidationError & { type: 'error' }) | (ValidationWarning & { type: 'warning' })
+  item: ToastItemType
   onDismiss: () => void
   severity: 'error' | 'warning'
 }
@@ -188,13 +211,9 @@ const ToastItem: React.FC<ToastItemProps> = ({ item, onDismiss, severity }) => {
         <div className="flex items-start gap-2 flex-1">
           <span className="text-sm">{config.icon}</span>
           <div className="flex-1">
-            <p className={`text-xs ${config.textColor} leading-tight`}>
-              {item.message}
-            </p>
-            {item.type === 'warning' && 'suggestion' in item && item.suggestion && (
-              <p className="text-xs text-gray-600 mt-1">
-                💬 {item.suggestion}
-              </p>
+            <p className={`text-xs ${config.textColor} leading-tight`}>{item.message}</p>
+            {item.type === 'warning' && item.suggestion && (
+              <p className="text-xs text-gray-600 mt-1">💬 {item.suggestion}</p>
             )}
           </div>
         </div>
@@ -204,7 +223,12 @@ const ToastItem: React.FC<ToastItemProps> = ({ item, onDismiss, severity }) => {
           aria-label="Dismiss"
         >
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeJoinWidth="2" d="M6 18L18 6M6 6l12 12" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
