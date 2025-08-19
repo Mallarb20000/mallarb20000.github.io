@@ -253,8 +253,38 @@
   color: var(--color-secondary);
 }
 
-[data-theme="dark"] .help-text {
+[data-theme="dark"] .help-text,
+.dark-mode .help-text {
   background: var(--bg-secondary);
   color: var(--color-secondary);
   border-color: var(--border-color);
+}
+
+/* Additional class-based selectors for immediate dark mode */
+.dark-mode .structured-essay-editor {
+  background: #1a1b23;
+}
+
+.dark-mode .section-title {
+  color: #f3f4f6;
+}
+
+.dark-mode .section-textarea {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f3f4f6;
+}
+
+.dark-mode .section-textarea:focus {
+  border-color: #f97316;
+}
+
+.dark-mode .add-paragraph-btn {
+  background: #374151;
+  border-color: #4b5563;
+  color: #d1d5db;
+}
+
+.dark-mode .total-word-count {
+  color: #d1d5db;
 }

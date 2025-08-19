@@ -386,7 +386,7 @@ class ValidationService {
       wordFrequency.set(normalized, (wordFrequency.get(normalized) || 0) + 1)
     })
 
-    const maxFrequency = Math.max(...wordFrequency.values())
+    const maxFrequency = Math.max(...Array.from(wordFrequency.values()))
     if (maxFrequency > words.length * 0.1) {
       warnings.push({
         type: 'vocabulary_diversity',

@@ -25,9 +25,11 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
   const [isVisible, setIsVisible] = useState(true)
   const [dismissedItems, setDismissedItems] = useState<Set<string>>(new Set())
 
-  const allItems = [
-    ...errors.map(e => ({ ...e, type: 'error' as const })),
-    ...warnings.map(w => ({ ...w, type: 'warning' as const }))
+  type ItemWithCategory = (ValidationError & { category: 'error' }) | (ValidationWarning & { category: 'warning' })
+  
+  const allItems: ItemWithCategory[] = [
+    ...errors.map(e => ({ ...e, category: 'error' as const })),
+    ...warnings.map(w => ({ ...w, category: 'warning' as const }))
   ]
 
   const visibleItems = allItems.filter(item => !dismissedItems.has(item.code))
@@ -44,7 +46,7 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
   }, [autoHide, hideDelay, onDismiss, visibleItems.length])
 
   const dismissItem = (code: string) => {
-    setDismissedItems(prev => new Set([...prev, code]))
+    setDismissedItems(prev => new Set(Array.from(prev).concat(code)))
   }
 
   const dismissAll = () => {
@@ -62,10 +64,10 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
     'top-center': 'top-4 left-1/2 transform -translate-x-1/2'
   }
 
-  const criticalErrors = visibleItems.filter(item => item.type === 'error' && 'severity' in item && item.severity === 'error')
+  const criticalErrors = visibleItems.filter(item => item.category === 'error' && 'severity' in item && item.severity === 'error')
   const minorIssues = visibleItems.filter(item => 
-    (item.type === 'error' && 'severity' in item && item.severity !== 'error') || 
-    item.type === 'warning'
+    (item.category === 'error' && 'severity' in item && item.severity !== 'error') || 
+    item.category === 'warning'
   )
 
   return (
@@ -98,7 +100,7 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
             aria-label="Dismiss all"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeJoinWidth="2" d="M6 18L18 6M6 6l12 12" />
+              <path strokeLinecap="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
@@ -161,7 +163,7 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
 }
 
 interface ToastItemProps {
-  item: (ValidationError & { type: 'error' }) | (ValidationWarning & { type: 'warning' })
+  item: (ValidationError & { category: 'error' }) | (ValidationWarning & { category: 'warning' })
   onDismiss: () => void
   severity: 'error' | 'warning'
 }
@@ -191,7 +193,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ item, onDismiss, severity }) => {
             <p className={`text-xs ${config.textColor} leading-tight`}>
               {item.message}
             </p>
-            {item.type === 'warning' && 'suggestion' in item && item.suggestion && (
+            {item.category === 'warning' && 'suggestion' in item && item.suggestion && (
               <p className="text-xs text-gray-600 mt-1">
                 💬 {item.suggestion}
               </p>
@@ -204,7 +206,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ item, onDismiss, severity }) => {
           aria-label="Dismiss"
         >
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeJoinWidth="2" d="M6 18L18 6M6 6l12 12" />
+            <path strokeLinecap="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>

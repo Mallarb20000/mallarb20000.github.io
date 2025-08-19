@@ -1135,7 +1135,8 @@ body {
 }
 
 /* Dark theme styles - Anthropic inspired with orange accents */
-[data-theme="dark"] {
+[data-theme="dark"],
+html[data-theme="dark"] {
   --color-primary: #ffffff;
   --color-secondary: #d1d5db;
   --color-muted: #9ca3af;
@@ -1160,9 +1161,10 @@ body {
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
 }
 
-[data-theme="dark"] body {
-  background-color: var(--bg-primary);
-  color: var(--color-primary);
+[data-theme="dark"] body,
+html[data-theme="dark"] body {
+  background-color: var(--bg-primary) !important;
+  color: var(--color-primary) !important;
 }
 
 [data-theme="dark"] .toggle-track {
@@ -1236,7 +1238,59 @@ body {
   color: var(--color-accent);
 }
 
-[data-theme="dark"] .modal-content {
+/* Alternative class-based dark mode selectors for better compatibility */
+.dark-mode,
+html.dark,
+body.dark-mode {
+  --color-primary: #ffffff;
+  --color-secondary: #d1d5db;
+  --color-muted: #9ca3af;
+  --color-accent: #f97316;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  
+  --bg-primary: #1a1b23;
+  --bg-secondary: #2a2d3a;
+  --bg-muted: #374151;
+  --bg-accent: #292a32;
+  
+  --border-color: #374151;
+  --border-muted: #4b5563;
+  
+  background-color: var(--bg-primary) !important;
+  color: var(--color-primary) !important;
+}
+
+/* Ensure body gets dark mode styles */
+.dark-mode *,
+html.dark *,
+body.dark-mode * {
+  border-color: var(--border-color);
+}
+
+/* Force immediate visual changes */
+.dark-mode {
+  background: #1a1b23 !important;
+  color: #ffffff !important;
+}
+
+.dark-mode .structured-essay-editor {
+  background: #1a1b23 !important;
+}
+
+.dark-mode .section-textarea {
+  background: #374151 !important;
+  color: #ffffff !important;
+  border-color: #4b5563 !important;
+}
+
+.dark-mode .section-title {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .modal-content,
+.dark-mode .modal-content {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
 }

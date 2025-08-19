@@ -808,3 +808,83 @@
     break-inside: avoid;
   }
 }
+
+/* Dark Mode Support */
+[data-theme="dark"] {
+  --color-background: #1a1b23;
+  --color-surface: #2a2d3a;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #d1d5db;
+  --color-border: #374151;
+  --color-brand: #f97316;
+  --color-brand-light: #292a32;
+  
+  --color-good: #10b981;
+  --color-good-bg: #0f2e1f;
+  
+  --color-needs-work: #f59e0b;
+  --color-needs-work-bg: #2a1f0a;
+
+  --color-poor: #ef4444;
+  --color-poor-bg: #2e0f0f;
+
+  --color-accent: #6941c6;
+  --color-accent-light: #292432;
+}
+
+/* Dark mode specific overrides */
+[data-theme="dark"] .report-page {
+  background: var(--color-background);
+}
+
+[data-theme="dark"] .top-notice {
+  background: linear-gradient(135deg, #2a1f0a, #292a32);
+  border-color: var(--color-brand);
+}
+
+[data-theme="dark"] .notice-text {
+  color: var(--color-text-secondary);
+}
+
+[data-theme="dark"] .question-box {
+  background: linear-gradient(135deg, var(--color-brand-light), #292a32);
+}
+
+[data-theme="dark"] .question-requirements p {
+  color: var(--color-text-secondary);
+}
+
+[data-theme="dark"] .loader {
+  border-color: var(--color-border);
+  border-top-color: var(--color-brand);
+}
+
+[data-theme="dark"] .score-badge.score-good {
+  background: var(--color-good-bg);
+  color: #34d399;
+}
+
+[data-theme="dark"] .score-badge.score-needs-work {
+  background: var(--color-needs-work-bg);
+  color: #fbbf24;
+}
+
+[data-theme="dark"] .score-badge.score-poor {
+  background: var(--color-poor-bg);
+  color: #f87171;
+}
+
+[data-theme="dark"] .component-score.score-good {
+  background: var(--color-good-bg);
+  color: #34d399;
+}
+
+[data-theme="dark"] .component-score.score-needs-work {
+  background: var(--color-needs-work-bg);
+  color: #fbbf24;
+}
+
+[data-theme="dark"] .component-score.score-poor {
+  background: var(--color-poor-bg);
+  color: #f87171;
+}
