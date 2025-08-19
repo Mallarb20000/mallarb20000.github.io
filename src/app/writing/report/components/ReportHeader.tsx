@@ -28,8 +28,8 @@ export const ReportHeader: React.FC<ReportHeaderProps> = ({
         flexWrap: 'wrap'
       }}>
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900">IELTS Writing Analysis Report</h1>
-          <p className="text-slate-500 mt-1">
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-gray-100">IELTS Writing Analysis Report</h1>
+          <p className="text-slate-500 dark:text-gray-400 mt-1">
             Generated on {new Date(timestamp).toLocaleDateString('en-US', { 
               year: 'numeric', 
               month: 'long', 
@@ -106,10 +106,10 @@ export const ReportHeader: React.FC<ReportHeaderProps> = ({
         </div>
       </div>
       
-      <div className="bg-amber-100 border-l-4 border-amber-500 text-amber-800 p-4 rounded-r-lg print:hidden" role="alert">
+      <div className="bg-amber-100 dark:bg-amber-900 border-l-4 border-amber-500 dark:border-amber-600 text-amber-800 dark:text-amber-200 p-4 rounded-r-lg print:hidden" role="alert">
         <div className="flex">
           <div className="py-1">
-            <AlertTriangleIcon className="w-6 h-6 text-amber-500 mr-4" />
+            <AlertTriangleIcon className="w-6 h-6 text-amber-500 dark:text-amber-400 mr-4" />
           </div>
           <div>
             <p className="font-bold">Important</p>

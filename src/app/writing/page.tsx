@@ -4,7 +4,10 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getRandomQuestion, Question as APIQuestion } from '../../services/questionsAPI';
 import Modal from '../../components/Modal';
+import StructuredEssayEditor from '../../components/StructuredEssayEditor';
+import ThemeToggle from '../../components/ThemeToggle';
 import './writing.css';
+import '../../components/StructuredEssayEditor.css';
 
 // --- TYPE DEFINITIONS ---
 type AnalysisState = 'initial' | 'loading' | 'analyzed';
@@ -22,8 +25,8 @@ interface PlanningAnswers {
 
 // --- LAYOUT COMPONENTS ---
 const MainContent: React.FC<{
-  essayText: string;
-  onEssayChange: (text: string) => void;
+  structuredEssay: { [key: string]: string };
+  onStructuredEssayChange: (essay: { [key: string]: string }) => void;
   onAnalyze: () => void;
   onClear: () => void;
   wordCount: number;
@@ -33,8 +36,8 @@ const MainContent: React.FC<{
   isPlanningComplete: boolean;
   hasLastAnalysis: boolean;
 }> = ({
-  essayText,
-  onEssayChange,
+  structuredEssay,
+  onStructuredEssayChange,
   onAnalyze,
   onClear,
   wordCount,
@@ -88,20 +91,11 @@ const MainContent: React.FC<{
       </div>
     </div>
     <div className="editor-container">
-      <textarea
-        value={essayText}
-        onChange={(e) => onEssayChange(e.target.value)}
-        placeholder={
-          isPlanningComplete
-            ? 'Start writing your essay here...'
-            : 'Complete your planning notes first to unlock the essay editor...'
-        }
+      <StructuredEssayEditor
+        onEssayChange={onStructuredEssayChange}
         disabled={!isPlanningComplete}
-        className={!isPlanningComplete ? 'editor-disabled' : ''}
-        title={
-          !isPlanningComplete ? 'Please complete planning phase first' : ''
-        }
       />
+      
       {!isPlanningComplete && (
         <div className="editor-overlay">
           <div className="lock-icon">
@@ -118,9 +112,6 @@ const MainContent: React.FC<{
           <p>Please complete planning phase first</p>
         </div>
       )}
-      <div className="editor-footer">
-        <span className="word-count">{wordCount} words</span>
-      </div>
     </div>
   </main>
 );
@@ -244,7 +235,7 @@ const PlanningPad: React.FC<{
 
 export default function WritingPage() {
   const router = useRouter();
-  const [essayText, setEssayText] = useState('');
+  const [structuredEssay, setStructuredEssay] = useState<{ [key: string]: string }>({});
   const [planningAnswers, setPlanningAnswers] = useState<PlanningAnswers>({
     typeOfEssay: '',
     hookSentence: '',
@@ -269,7 +260,7 @@ export default function WritingPage() {
         if (storedState) {
           try {
             const parsed = JSON.parse(storedState);
-            setEssayText(parsed.essayText || '');
+            setStructuredEssay(parsed.structuredEssay || {});
             setPlanningAnswers(parsed.planningAnswers || planningAnswers);
             setAnalysisState(parsed.analysisState || 'initial');
             // Only use stored question if it exists and has valid API data, otherwise load new one
@@ -301,14 +292,14 @@ export default function WritingPage() {
       sessionStorage.setItem(
         'writingState',
         JSON.stringify({
-          essayText,
+          structuredEssay,
           planningAnswers,
           currentQuestion,
           analysisState,
         })
       );
     }
-  }, [essayText, planningAnswers, currentQuestion, analysisState]);
+  }, [structuredEssay, planningAnswers, currentQuestion, analysisState]);
 
   const handleAnalyze = async () => {
     if (wordCount === 0) return;
@@ -320,6 +311,9 @@ export default function WritingPage() {
 
     setAnalysisState('loading');
 
+    // Format structured essay for submission
+    const finalEssayText = formatStructuredEssayForSubmission(structuredEssay);
+
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002'}/api/writing/analyze`,
@@ -327,7 +321,7 @@ export default function WritingPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            essay: essayText.trim(),
+            essay: finalEssayText,
             prompt: currentQuestion.question,
           }),
         }
@@ -344,7 +338,7 @@ export default function WritingPage() {
             'lastAnalysis',
             JSON.stringify({
               analysis: result.analysis,
-              essay: essayText,
+              essay: finalEssayText,
               prompt: currentQuestion.question,
               timestamp: new Date().toISOString(),
             })
@@ -367,13 +361,46 @@ export default function WritingPage() {
 
   const handleConfirmClear = () => {
     setShowClearModal(false)
-    setEssayText('')
+    setStructuredEssay({})
     setAnalysisState('initial')
   }
 
   const handleCancelClear = () => {
     setShowClearModal(false)
   }
+
+
+  const handleStructuredEssayChange = (essay: { [key: string]: string }) => {
+    setStructuredEssay(essay);
+  };
+
+  const formatStructuredEssayForSubmission = (structuredEssay: { [key: string]: string }) => {
+    const sections = ['introduction', 'body1', 'body2', 'body3', 'body4', 'body5', 'conclusion'];
+    let formatted = '';
+    
+    sections.forEach(sectionId => {
+      const content = structuredEssay[sectionId];
+      if (content && content.trim()) {
+        const sectionTitle = getSectionTitle(sectionId);
+        formatted += `${sectionTitle}: ${content.trim()}\n\n`;
+      }
+    });
+    
+    return formatted.trim();
+  };
+
+  const getSectionTitle = (sectionId: string) => {
+    switch (sectionId) {
+      case 'introduction': return 'Introduction';
+      case 'body1': return 'Body Paragraph 1';
+      case 'body2': return 'Body Paragraph 2';
+      case 'body3': return 'Body Paragraph 3';
+      case 'body4': return 'Body Paragraph 4';
+      case 'body5': return 'Body Paragraph 5';
+      case 'conclusion': return 'Conclusion';
+      default: return sectionId;
+    }
+  };
 
   const [isLoadingQuestion, setIsLoadingQuestion] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
@@ -393,7 +420,7 @@ export default function WritingPage() {
       
       // Reset everything
       setCurrentQuestion(newQuestion)
-      setEssayText('')
+      setStructuredEssay({})
       setPlanningAnswers({
         typeOfEssay: '',
         hookSentence: '',
@@ -422,9 +449,12 @@ export default function WritingPage() {
   }
 
   const wordCount = useMemo(() => {
-    if (!essayText.trim()) return 0;
-    return essayText.trim().split(/\s+/).length;
-  }, [essayText]);
+    const totalWords = Object.values(structuredEssay).reduce((total, content) => {
+      if (!content.trim()) return total;
+      return total + content.trim().split(/\s+/).length;
+    }, 0);
+    return totalWords;
+  }, [structuredEssay]);
 
   const isPlanningComplete = useMemo(() => {
     return Object.values(planningAnswers).every(answer => answer.trim().length > 0);
@@ -440,9 +470,14 @@ export default function WritingPage() {
 
   return (
     <div className="app-main">
+      {/* Theme Toggle */}
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+      
       <MainContent
-        essayText={essayText}
-        onEssayChange={setEssayText}
+        structuredEssay={structuredEssay}
+        onStructuredEssayChange={handleStructuredEssayChange}
         onAnalyze={handleAnalyze}
         onClear={handleClearClick}
         wordCount={wordCount}

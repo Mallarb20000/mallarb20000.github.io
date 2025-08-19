@@ -19,13 +19,13 @@ interface EssayStructureAnalysisProps {
 const getScoreBadgeClasses = (score: 'good' | 'needs_work' | 'poor'): string => {
   switch (score) {
     case 'good':
-      return 'bg-green-100 text-green-800'
+      return 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
     case 'needs_work':
-      return 'bg-amber-100 text-amber-800'
+      return 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200'
     case 'poor':
-      return 'bg-red-100 text-red-800'
+      return 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
     default:
-      return 'bg-slate-100 text-slate-600'
+      return 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
   }
 }
 
@@ -51,22 +51,22 @@ const AnalysisCard: React.FC<{
 }> = ({ title, element, tips }) => {
   if (!element) {
     return (
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-slate-200 dark:border-gray-700 shadow-sm">
         <div className="flex justify-between items-center mb-4">
-          <h4 className="text-lg font-bold text-slate-800">{title}</h4>
-          <span className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+          <h4 className="text-lg font-bold text-slate-800 dark:text-gray-100">{title}</h4>
+          <span className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
             Not Found
           </span>
         </div>
-        <p className="text-sm text-slate-600 leading-relaxed mb-4">
+        <p className="text-sm text-slate-600 dark:text-gray-300 leading-relaxed mb-4">
           {title} was not clearly identified in your essay.
         </p>
         <div>
-          <p className="text-sm font-semibold text-slate-600 mb-2">How to Improve:</p>
+          <p className="text-sm font-semibold text-slate-600 dark:text-gray-300 mb-2">How to Improve:</p>
           <ul className="space-y-2">
             {tips.map((tip, index) => (
-              <li key={index} className="flex items-start text-sm text-slate-600">
-                <CheckCircleIcon className="w-4 h-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
+              <li key={index} className="flex items-start text-sm text-slate-600 dark:text-gray-300">
+                <CheckCircleIcon className="w-4 h-4 text-green-600 dark:text-green-400 mr-2 mt-0.5 flex-shrink-0" />
                 <span>{tip}</span>
               </li>
             ))}
@@ -80,32 +80,32 @@ const AnalysisCard: React.FC<{
   const scoreText = element.score.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
 
   return (
-    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-slate-200 dark:border-gray-700 shadow-sm">
       <div className="flex justify-between items-center mb-4">
-        <h4 className="text-lg font-bold text-slate-800">{title}</h4>
+        <h4 className="text-lg font-bold text-slate-800 dark:text-gray-100">{title}</h4>
         <span className={`px-3 py-1 text-xs font-semibold rounded-full ${badgeClasses}`}>
           {scoreText}
         </span>
       </div>
 
       <div className="mb-4">
-        <p className="text-sm font-semibold text-slate-600 mb-2">Identified Text:</p>
-        <blockquote className="border-l-4 border-slate-200 pl-4 py-2 bg-slate-50 rounded-r-md text-slate-700 italic">
+        <p className="text-sm font-semibold text-slate-600 dark:text-gray-300 mb-2">Identified Text:</p>
+        <blockquote className="border-l-4 border-slate-200 dark:border-gray-600 pl-4 py-2 bg-slate-50 dark:bg-gray-700 rounded-r-md text-slate-700 dark:text-gray-200 italic">
           "{element.text}"
         </blockquote>
       </div>
 
       <div className="mb-4">
-        <p className="text-sm font-semibold text-slate-600 mb-2">Assessment:</p>
-        <p className="text-sm text-slate-600 leading-relaxed">{element.feedback}</p>
+        <p className="text-sm font-semibold text-slate-600 dark:text-gray-300 mb-2">Assessment:</p>
+        <p className="text-sm text-slate-600 dark:text-gray-300 leading-relaxed">{element.feedback}</p>
       </div>
 
       <div>
-        <p className="text-sm font-semibold text-slate-600 mb-2">How to Improve:</p>
+        <p className="text-sm font-semibold text-slate-600 dark:text-gray-300 mb-2">How to Improve:</p>
         <ul className="space-y-2">
           {tips.map((tip, index) => (
-            <li key={index} className="flex items-start text-sm text-slate-600">
-              <CheckCircleIcon className="w-4 h-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
+            <li key={index} className="flex items-start text-sm text-slate-600 dark:text-gray-300">
+              <CheckCircleIcon className="w-4 h-4 text-green-600 dark:text-green-400 mr-2 mt-0.5 flex-shrink-0" />
               <span>{tip}</span>
             </li>
           ))}

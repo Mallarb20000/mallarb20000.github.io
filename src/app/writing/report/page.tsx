@@ -8,6 +8,7 @@ import { CollapsibleSection } from './components/CollapsibleSection'
 import { BandScores } from './components/BandScores'
 import { EssayStructureAnalysis } from './components/EssayStructureAnalysis'
 import { EssayDisplay } from './components/EssayDisplay'
+import ThemeToggle from '../../../components/ThemeToggle'
 import './report.css'
 
 // Import jsPDF for PDF generation
@@ -779,7 +780,12 @@ Report Date: ${date}
   }
 
   return (
-    <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 font-sans text-slate-800 bg-slate-50 min-h-screen">
+    <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 font-sans text-slate-800 dark:text-gray-100 bg-slate-50 dark:bg-gray-900 min-h-screen">
+      {/* Theme Toggle */}
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+      
       <ReportHeader 
         timestamp={analysisData.timestamp} 
         onDownloadTxt={downloadTxtReport}
@@ -800,7 +806,7 @@ Report Date: ${date}
           <BandScores bandScores={analysisData.bandScores} />
         </CollapsibleSection>
 
-        <CollapsibleSection title="Essay Structure Analysis">
+        <CollapsibleSection title="Essay Structure Analysis" comingSoon={true}>
           <div className="essay-sections-grid">
             {/* Check if we have new format, otherwise convert from legacy */}
             {analysisData.structuralAnalysis?.introduction || analysisData.structuralAnalysis?.bodyParagraphs || analysisData.structuralAnalysis?.conclusion ? (

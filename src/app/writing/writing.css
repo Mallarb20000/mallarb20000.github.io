@@ -997,3 +997,193 @@ body {
     padding: 1rem 1.25rem 1.25rem 1.25rem;
   }
 }
+
+/* Dark mode support for writing components */
+[data-theme="dark"] {
+  --color-background: #1a1b23;
+  --color-surface: #2a2d3a;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #d1d5db;
+  --color-border: #374151;
+  --color-brand-light: #292a32;
+  
+  --color-good-bg: #0f2e1f;
+  --color-needs-work-bg: #2a1f0a;
+  --color-poor-bg: #2e0f0f;
+  --color-accent-light: #292432;
+}
+
+[data-theme="dark"] body {
+  background-color: var(--bg-primary);
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] .app-main {
+  background-color: var(--bg-primary);
+}
+
+[data-theme="dark"] .main-content {
+  background-color: var(--bg-primary);
+}
+
+[data-theme="dark"] .prompt-box {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .prompt-header h2 {
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] .prompt-text p {
+  color: var(--color-secondary);
+}
+
+[data-theme="dark"] .editor-container {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .editor-container textarea {
+  background: var(--bg-secondary);
+  color: var(--color-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .editor-container textarea:focus {
+  border-color: var(--color-accent);
+}
+
+[data-theme="dark"] .editor-container textarea::placeholder {
+  color: var(--color-muted);
+}
+
+[data-theme="dark"] .editor-footer {
+  background: var(--bg-muted);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .word-count {
+  color: var(--color-secondary);
+}
+
+[data-theme="dark"] .planning-pad {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .planning-header {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .planning-header h2 {
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] .planning-importance {
+  background: var(--bg-accent);
+}
+
+[data-theme="dark"] .importance-toggle h3 {
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] .importance-content {
+  color: var(--color-secondary);
+}
+
+[data-theme="dark"] .question-label {
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] .answer-textarea {
+  background: var(--bg-muted);
+  color: var(--color-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .answer-textarea:focus {
+  border-color: var(--color-accent);
+}
+
+[data-theme="dark"] .answer-textarea::placeholder {
+  color: var(--color-muted);
+}
+
+[data-theme="dark"] .btn {
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] .btn-primary {
+  background: var(--color-accent);
+}
+
+[data-theme="dark"] .btn-secondary {
+  background: var(--bg-muted);
+  border-color: var(--border-color);
+  color: var(--color-secondary);
+}
+
+[data-theme="dark"] .btn-outline {
+  border-color: var(--border-color);
+  color: var(--color-secondary);
+}
+
+[data-theme="dark"] .btn-outline:hover {
+  background: var(--bg-muted);
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] .modal-content {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-header {
+  background: var(--bg-accent);
+}
+
+[data-theme="dark"] .modal-header h3 {
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] .modal-subtitle {
+  color: var(--color-secondary);
+}
+
+[data-theme="dark"] .primary-message {
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] .secondary-message {
+  color: var(--color-secondary);
+}
+
+[data-theme="dark"] .modal-footer {
+  background: var(--bg-muted);
+  border-color: var(--border-color);
+}
+
+/* Theme toggle positioning and styling */
+.theme-toggle-container {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+}
+
+/* Ensure toggle is visible on mobile */
+@media (max-width: 768px) {
+  .theme-toggle-container {
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+}
+
+/* Ensure toggle works with planning panel */
+@media (max-width: 1024px) {
+  .planning-panel.visible ~ .theme-toggle-container {
+    right: 0.5rem;
+  }
+}
