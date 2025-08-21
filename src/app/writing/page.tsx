@@ -410,9 +410,36 @@ export default function WritingPage() {
     setShowConfirmModal(true)
   }
 
+  const checkConnectivity = async (): Promise<boolean> => {
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002'}/api/health`, {
+        method: 'GET',
+        signal: controller.signal
+      })
+      
+      clearTimeout(timeoutId)
+      return response.ok
+    } catch (error) {
+      console.error('Connectivity check failed:', error)
+      return false
+    }
+  }
+
   const handleConfirmChangeQuestion = async () => {
     setShowConfirmModal(false)
     setIsLoadingQuestion(true)
+    
+    // Check connectivity first
+    const isConnected = await checkConnectivity()
+    
+    if (!isConnected) {
+      alert('❌ Connection failed!\n\nUnable to connect to the server. Please check:\n• Your internet connection\n• Server status\n• Try again in a moment')
+      setIsLoadingQuestion(false)
+      return
+    }
     
     try {
       // Get new question
@@ -436,9 +463,12 @@ export default function WritingPage() {
         sessionStorage.removeItem('writingState')
         sessionStorage.removeItem('lastAnalysis')
       }
+      
+      // Show success feedback
+      alert('✅ Connected successfully!\n\nNew question loaded.')
     } catch (error) {
       console.error('Failed to change question:', error)
-      alert('Failed to load new question. Please try again.')
+      alert('❌ Failed to load new question!\n\nThe server is reachable but couldn\'t fetch a new question. Please try again.')
     } finally {
       setIsLoadingQuestion(false)
     }
