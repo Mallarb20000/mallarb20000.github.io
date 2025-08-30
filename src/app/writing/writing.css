@@ -314,6 +314,12 @@ body {
   margin-bottom: 0.5rem;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .prompt-header h2 {
   font-size: 0.8rem;
   font-weight: 700;
@@ -758,6 +764,12 @@ body {
     padding: 0.35rem 0.6rem;
     font-size: 0.7rem;
   }
+  
+  .chat-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    border-radius: var(--border-radius-md);
+  }
 }
 
 /* Modal Styles */
@@ -998,6 +1010,45 @@ body {
   }
 }
 
+/* Chat Button Styles */
+.chat-button-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.chat-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-lg);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+  transition: all 0.2s ease;
+}
+
+.chat-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+  background: linear-gradient(135deg, #5855eb, #7c3aed);
+}
+
+.chat-button:active {
+  transform: translateY(0);
+}
+
+.chat-button svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+}
+
 /* Dark mode support for writing components */
 [data-theme="dark"] {
   --color-background: #1a1b23;
@@ -1186,4 +1237,15 @@ body {
   .planning-panel.visible ~ .theme-toggle-container {
     right: 0.5rem;
   }
+}
+
+/* Dark mode chat button */
+[data-theme="dark"] .chat-button {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+[data-theme="dark"] .chat-button:hover {
+  background: linear-gradient(135deg, #4338ca, #6d28d9);
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
 }

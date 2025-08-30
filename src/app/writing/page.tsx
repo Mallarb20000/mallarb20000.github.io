@@ -1,11 +1,16 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getRandomQuestion, Question as APIQuestion } from '../../services/questionsAPI';
 import Modal from '../../components/Modal';
 import StructuredEssayEditor from '../../components/StructuredEssayEditor';
 import ThemeToggle from '../../components/ThemeToggle';
+import EnhancedCoachInterface from '../../components/coach/EnhancedCoachInterface';
+import PlanSummary from '../../components/coach/PlanSummary';
+import ChatInterface from '../../components/coach/ChatInterface';
+import { initChat, ChatSession } from '../../services/geminiService';
+import { AppState, Message, EssayPlan } from '../../types/coach';
 import './writing.css';
 import '../../components/StructuredEssayEditor.css';
 
@@ -21,6 +26,45 @@ interface PlanningAnswers {
   linkToThesis: string;
   conclusion: string;
 }
+
+type AppPhase = 'coach' | 'writing';
+
+// Helper function to parse AI responses for state and plan updates
+const parseAIResponse = (text: string) => {
+    let cleanText = text;
+    let nextState: AppState | null = null;
+    const planUpdates: Partial<EssayPlan> = {};
+
+    const stateMatch = text.match(/\[STATE_UPDATE:(\w+)\]/);
+    if (stateMatch?.[1]) {
+        const newStateKey = stateMatch[1] as keyof typeof AppState;
+        if (AppState[newStateKey]) {
+            nextState = AppState[newStateKey];
+        }
+        cleanText = cleanText.replace(stateMatch[0], '');
+    }
+
+    const planMatches = [...text.matchAll(/\[PLAN_UPDATE:(\w+)\]([^\[]+)/g)];
+    planMatches.forEach(match => {
+        const key = match[1] as keyof EssayPlan;
+        const value = match[2].trim();
+        if (Object.keys(newPlanTemplate).includes(key)) {
+            (planUpdates as any)[key] = value;
+        }
+        cleanText = cleanText.replace(match[0], '');
+    });
+
+    return { cleanText: cleanText.trim(), nextState, planUpdates };
+};
+
+const newPlanTemplate: EssayPlan = {
+    questionType: null,
+    hook: null,
+    thesis: null,
+    topicSentence1: null,
+    topicSentence2: null,
+    conclusion: null,
+};
 
 
 // --- LAYOUT COMPONENTS ---
@@ -51,9 +95,11 @@ const MainContent: React.FC<{
     <div className="prompt-box">
       <div className="prompt-header">
         <h2>IELTS WRITING TASK 2</h2>
-        <button className="btn btn-outline" onClick={onChangeQuestion} disabled={isLoadingQuestion}>
-          {isLoadingQuestion ? 'Loading...' : 'Change Question'}
-        </button>
+        <div className="header-actions">
+          <button className="btn btn-outline" onClick={onChangeQuestion} disabled={isLoadingQuestion}>
+            {isLoadingQuestion ? 'Loading...' : 'Change Question'}
+          </button>
+        </div>
       </div>
       <div className="prompt-content">
         <div className="prompt-text">
@@ -91,6 +137,16 @@ const MainContent: React.FC<{
       </div>
     </div>
     <div className="editor-container">
+      {/* Chat Button */}
+      <div className="chat-button-container">
+        <button className="chat-button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          Chat with AI Coach
+        </button>
+      </div>
+      
       <StructuredEssayEditor
         onEssayChange={onStructuredEssayChange}
         disabled={!isPlanningComplete}
@@ -252,6 +308,16 @@ export default function WritingPage() {
   const [lastAnalysisResult, setLastAnalysisResult] = useState<any>(null)
   const [isPlanningVisible, setIsPlanningVisible] = useState(true)
 
+  // Coach phase states
+  const [appPhase, setAppPhase] = useState<AppPhase>('coach');
+  const [essayQuestion, setEssayQuestion] = useState<string | null>(null);
+  const [appState, setAppState] = useState<AppState>(AppState.WELCOME);
+  const [messagesByState, setMessagesByState] = useState<Partial<Record<AppState, Message[]>>>({});
+  const [essayPlan, setEssayPlan] = useState<EssayPlan>(newPlanTemplate);
+  const [isCoachLoading, setIsCoachLoading] = useState(false);
+  const [initError, setInitError] = useState<string | null>(null);
+  const chatSession = useRef<ChatSession | null>(null);
+
   // Load initial question from API
   useEffect(() => {
     const loadInitialQuestion = async () => {
@@ -300,6 +366,177 @@ export default function WritingPage() {
       );
     }
   }, [structuredEssay, planningAnswers, currentQuestion, analysisState]);
+
+  // Coach conversation starter
+  useEffect(() => {
+    const startConversation = async (question: string) => {
+      setIsCoachLoading(true);
+      setAppState(AppState.QUESTION_TYPE);
+
+      try {
+        chatSession.current = await initChat(question);
+        
+        const aiMessageId = `ai-${Date.now()}`;
+        
+        setMessagesByState(prev => ({
+          ...prev,
+          [AppState.QUESTION_TYPE]: [{ 
+            id: aiMessageId, 
+            sender: 'ai', 
+            text: 'Hello! I\'m your AI IELTS Writing Coach. Let\'s start by identifying the question type from the options below.' 
+          }]
+        }));
+
+      } catch (error) {
+        console.error("Error starting conversation:", error);
+        if (error instanceof Error) {
+          setInitError(error.message);
+        } else {
+          setInitError("An unknown error occurred during initialization.");
+        }
+      } finally {
+        setIsCoachLoading(false);
+      }
+    };
+
+    if (essayQuestion && appState === AppState.WELCOME && !chatSession.current && appPhase === 'coach') {
+      startConversation(essayQuestion);
+    }
+  }, [essayQuestion, appState, appPhase]);
+
+  // Coach message handler
+  const handleSendMessage = async (text: string) => {
+    if (!chatSession.current || isCoachLoading) return;
+
+    setIsCoachLoading(true);
+    const userMessage: Message = { id: `user-${Date.now()}`, sender: 'user', text };
+    const aiMessageId = `ai-${Date.now()}`;
+
+    setMessagesByState(prev => ({
+      ...prev,
+      [appState]: [
+        ...(prev[appState] || []),
+        userMessage,
+      ]
+    }));
+    
+    try {
+      const result = await chatSession.current.sendMessage(text);
+      
+      setMessagesByState(prev => ({
+        ...prev,
+        [appState]: [...(prev[appState] || []), { id: aiMessageId, sender: 'ai', text: '' }]
+      }));
+
+      const { response: fullResponseText, planUpdates: directPlanUpdates, nextState: directNextState } = result;
+
+      const { cleanText: rawCleanText, nextState: parsedNextState, planUpdates: parsedPlanUpdates } = parseAIResponse(fullResponseText);
+      
+      const finalPlanUpdates = { ...parsedPlanUpdates, ...directPlanUpdates };
+      const finalNextState = directNextState || parsedNextState;
+
+      const cleanText = rawCleanText.trim() === ''
+        ? "I'm sorry, I seem to have lost my train of thought. Could you please try sending your last message again?"
+        : rawCleanText;
+
+      // Fallback logic: If AI correctly identifies question type but doesn't provide PLAN_UPDATE tag
+      if (appState === AppState.QUESTION_TYPE && !essayPlan.questionType && 
+          (cleanText.includes('Exactly! Well done') || cleanText.includes('Correct!')) &&
+          cleanText.includes('ready to write the hook')) {
+        
+        // Try to extract question type from AI response
+        const questionTypePatterns = [
+          /Opinion \(Agree or Disagree\)/i,
+          /Discussion \(Discuss both views and give your opinion\)/i,
+          /Problem and Solution/i,
+          /Advantages and Disadvantages/i,
+          /Two-Part Question \(Direct questions\)/i
+        ];
+        
+        for (const pattern of questionTypePatterns) {
+          const match = cleanText.match(pattern);
+          if (match) {
+            finalPlanUpdates.questionType = match[0];
+            console.log('Fallback: Detected question type from AI response:', match[0]);
+            break;
+          }
+        }
+      }
+
+      if (Object.keys(finalPlanUpdates).length > 0) {
+        setEssayPlan(prev => {
+          const newPlan = { ...prev, ...finalPlanUpdates };
+          
+          // Auto-populate planning answers from AI coach
+          if (newPlan.questionType && !planningAnswers.typeOfEssay) {
+            setPlanningAnswers(prev => ({ ...prev, typeOfEssay: newPlan.questionType || '' }));
+          }
+          if (newPlan.hook && !planningAnswers.hookSentence) {
+            setPlanningAnswers(prev => ({ ...prev, hookSentence: newPlan.hook || '' }));
+          }
+          if (newPlan.thesis && !planningAnswers.thesisSentence) {
+            setPlanningAnswers(prev => ({ ...prev, thesisSentence: newPlan.thesis || '' }));
+          }
+          if ((newPlan.topicSentence1 || newPlan.topicSentence2) && !planningAnswers.topicSentences) {
+            const topics = [newPlan.topicSentence1, newPlan.topicSentence2].filter(Boolean).join('\n\n');
+            setPlanningAnswers(prev => ({ ...prev, topicSentences: topics }));
+          }
+          if (newPlan.conclusion && !planningAnswers.conclusion) {
+            setPlanningAnswers(prev => ({ ...prev, conclusion: newPlan.conclusion || '' }));
+          }
+          
+          return newPlan;
+        });
+      }
+
+      // Check if coach is complete and transition to writing
+      if (finalNextState === AppState.COMPLETE) {
+        setAppPhase('writing');
+        setCurrentQuestion({ id: Date.now(), question: essayQuestion || 'Custom question' });
+        return;
+      }
+
+      if (rawCleanText.trim() === '' && finalNextState) {
+        setMessagesByState(prev => {
+          const currentMessages = (prev[appState] || []).map(msg =>
+            msg.id === aiMessageId ? { ...msg, text: cleanText } : msg
+          );
+          return { ...prev, [appState]: currentMessages };
+        });
+      } else if (finalNextState) {
+        setMessagesByState(prev => {
+          const oldStateMessages = (prev[appState] || []).filter(msg => msg.id !== aiMessageId);
+          return { ...prev, [appState]: oldStateMessages };
+        });
+        setAppState(finalNextState as AppState);
+        setMessagesByState(prev => ({
+          ...prev,
+          [finalNextState]: [{ id: `ai-new-${Date.now()}`, sender: 'ai', text: cleanText }]
+        }));
+      } else {
+        setMessagesByState(prev => {
+          const currentMessages = (prev[appState] || []).map(msg =>
+            msg.id === aiMessageId ? { ...msg, text: cleanText } : msg
+          );
+          return { ...prev, [appState]: currentMessages };
+        });
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      setMessagesByState(prev => {
+        const currentMessages = (prev[appState] || []).map(msg =>
+          msg.id === aiMessageId ? { ...msg, text: 'An error occurred. Please try again.' } : msg
+        );
+        return { ...prev, [appState]: currentMessages };
+      });
+    } finally {
+      setIsCoachLoading(false);
+    }
+  };
+
+  const handleCoachStart = (question: string) => {
+    setEssayQuestion(question);
+  };
 
   const handleAnalyze = async () => {
     if (wordCount === 0) return;
@@ -498,11 +735,75 @@ export default function WritingPage() {
   }, [analysisState]);
   
 
+  // Show error state
+  if (initError) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-red-50 dark:bg-gray-900 text-red-700 dark:text-red-300">
+        <div className="w-full max-w-2xl p-8 mx-4 space-y-4 text-center bg-white dark:bg-gray-800 rounded-2xl shadow-lg">
+          <h1 className="text-2xl font-bold">Initialization Error</h1>
+          <p className="text-base">The application could not start due to a configuration issue.</p>
+          <pre className="p-4 mt-2 text-sm text-left bg-red-100 dark:bg-gray-700 dark:text-red-200 rounded-lg whitespace-pre-wrap font-mono">
+            {initError}
+          </pre>
+          <p className="pt-2 text-sm text-gray-600 dark:text-gray-400">
+            This application expects the Gemini API key to be available as an <code>API_KEY</code> environment variable in the execution context.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show coach interface first
+  if (appPhase === 'coach') {
+    if (!essayQuestion) {
+      // Use the new beautiful question selector from our coach page
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+          <div className="max-w-2xl w-full text-center">
+            <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
+              <span className="text-4xl text-white">🤖</span>
+            </div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              AI IELTS Writing Coach
+            </h1>
+            <p className="text-xl text-gray-600 mb-8">
+              Get personalized, adaptive guidance for your IELTS Writing Task 2 essay
+            </p>
+            <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+              <button
+                onClick={() => window.location.href = '/writing/coach'}
+                className="w-full py-4 px-8 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-semibold text-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-[1.02]"
+              >
+                Start with AI Coach →
+              </button>
+              <p className="text-sm text-gray-500 mt-4">
+                ✨ New adaptive interface that adjusts to your skill level
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return <EnhancedCoachInterface essayQuestion={essayQuestion} />;
+  }
+
+  // Show writing interface after coach is complete
   return (
     <div className="app-main">
       {/* Theme Toggle */}
       <div className="fixed top-4 right-4 z-50">
         <ThemeToggle />
+      </div>
+
+      {/* Back to Coach Button */}
+      <div className="fixed top-4 left-4 z-50">
+        <button
+          onClick={() => setAppPhase('coach')}
+          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+        >
+          ← Back to Coach
+        </button>
       </div>
       
       <MainContent

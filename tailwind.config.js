@@ -17,6 +17,9 @@ module.exports = {
         'danger-light': '#fee2e2',
         'danger-dark': '#dc2626',
       },
+      animation: {
+        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      },
     },
   },
   plugins: [],

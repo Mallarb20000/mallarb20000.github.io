@@ -1,4 +1,5 @@
 import './writing/globals.css'
+import '../styles/tailwind.css'
 
 export const metadata = {
   title: 'IELTS Writing Analyzer',
@@ -25,7 +26,15 @@ export default function RootLayout({
                   
                   // Apply theme immediately with all selectors
                   document.documentElement.setAttribute('data-theme', theme);
-                  document.body.className = isDark ? 'dark-mode' : 'light-mode';
+                  // Set body class when DOM is ready
+                  function setBodyClass() {
+                    if (document.body) {
+                      document.body.className = isDark ? 'dark-mode' : 'light-mode';
+                    } else {
+                      setTimeout(setBodyClass, 10);
+                    }
+                  }
+                  setBodyClass();
                   
                   if (isDark) {
                     document.documentElement.classList.add('dark');

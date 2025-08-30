@@ -575,6 +575,15 @@ body {
   }
 }
 
+@keyframes pulse-fast {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+.animate-pulse-fast {
+  animation: pulse-fast 1s ease-in-out infinite;
+}
+
 .navbar-logo {
   display: flex;
   align-items: center;
