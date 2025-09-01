@@ -154,12 +154,12 @@ export const initEnhancedChat = async (
     console.error('Error initializing enhanced chat:', error);
     
     // More specific error messages based on the error type
-    if (error instanceof TypeError && error.message.includes('fetch')) {
+    if (error instanceof TypeError && (error as TypeError).message.includes('fetch')) {
       throw new Error("Network Error: Cannot connect to backend server. Please ensure the backend is running on port 3002.");
-    } else if (error instanceof TypeError && error.message.includes('destructure')) {
+    } else if (error instanceof TypeError && (error as TypeError).message.includes('destructure')) {
       throw new Error("API Error: Unexpected response format from server. Check backend logs.");
-    } else if (error.message?.includes('HTTP')) {
-      throw new Error(`Server Error: ${error.message}. Check if the backend is responding correctly.`);
+    } else if ((error as Error).message?.includes('HTTP')) {
+      throw new Error(`Server Error: ${(error as Error).message}. Check if the backend is responding correctly.`);
     }
     
     throw new Error("Configuration Error: Unable to connect to chat service. Please ensure the backend is running.");
