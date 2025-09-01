@@ -17,6 +17,7 @@ const config = require('./config')
 // Import middleware
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler')
 const { requestLogger } = require('./middleware/logger')
+const { sanitizeRequest, validateChatId } = require('./middleware/validation')
 
 // Import services
 const AIFactory = require('./services/ai/AIFactory')
@@ -285,7 +286,7 @@ app.get('/health', (req, res) => {
 app.use('/api/writing', writingRoutes)
 
 // Enhanced chat session endpoints
-app.post('/start-enhanced', async (req, res) => {
+app.post('/start-enhanced', sanitizeRequest, async (req, res) => {
   try {
     const { essayQuestion, userLevel } = req.body
     
