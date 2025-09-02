@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: scorespoken-writing-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: AI_PROVIDER
+        value: gemini
+      - key: AI_MODEL
+        value: gemini-2.0-flash-exp
+      - key: AI_MAX_RETRIES
+        value: 3
+      - key: AI_TIMEOUT
+        value: 30000
