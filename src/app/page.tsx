@@ -97,8 +97,8 @@ const MainContent: React.FC<{
       </div>
     </div>
     <div className="editor-container">
-      {/* AI Coach Chat Button */}
-      <div className="chat-button-container">
+      {/* AI Coach Chat Button - Temporarily Disabled */}
+      {/* <div className="chat-button-container">
         <button 
           className={`chat-button ${isChatOpen ? 'active' : ''}`}
           onClick={onToggleChat}
@@ -108,7 +108,7 @@ const MainContent: React.FC<{
           </svg>
           {isChatOpen ? 'Close AI Coach' : 'Chat with AI Coach'}
         </button>
-      </div>
+      </div> */}
       
       <StructuredEssayEditor
         onEssayChange={onStructuredEssayChange}
