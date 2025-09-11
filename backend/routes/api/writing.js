@@ -20,9 +20,14 @@ const WritingPrompts = require('../../services/ai/prompts/WritingPrompts')
  */
 router.post('/analyze', 
   async (req, res, next) => {
+    const startTime = Date.now()
     try {
       const { essay, prompt } = req.body
-      const userId = req.user?.uid || 'anonymous' // Temporary for testing
+      const userId = req.user?.uid || 'anonymous'
+      const wordCount = essay.split(/\s+/).length
+      
+      // Log analytics
+      console.log(`📊 Analysis request: wordCount=${wordCount}, userId=${userId}`)
       
       // Get AI service
       const config = require('../../config')
@@ -31,7 +36,7 @@ router.post('/analyze',
       // Enable real AI analysis
       console.log('=== STARTING REAL AI ANALYSIS ===')
       console.log('Essay text:', JSON.stringify(essay))
-      console.log('Essay word count:', essay.split(/\s+/).length)
+      console.log('Essay word count:', wordCount)
       console.log('Essay length:', essay.length)
       
       const analysisResult = await analyzeEssayDualGrading(aiService, essay, prompt)
@@ -46,9 +51,11 @@ router.post('/analyze',
       // })
       
       // Log successful analysis
-      console.log(`Writing analysis completed for user ${userId}`, {
+      const analysisTime = Date.now() - startTime
+      console.log(`✅ Analysis completed for user ${userId}`, {
         overallBand: analysisResult.overallBand,
-        wordCount: essay.split(/\s+/).length
+        wordCount: wordCount,
+        analysisTime: `${analysisTime}ms`
       })
       
       console.log('Sending analysis result:', JSON.stringify(analysisResult, null, 2))
@@ -56,18 +63,27 @@ router.post('/analyze',
       res.json({
         success: true,
         submissionId: 'temp-' + Date.now(),
-        analysis: analysisResult
+        analysis: analysisResult,
+        meta: {
+          analysisTime,
+          wordCount
+        }
       })
       
     } catch (error) {
-      console.error('Writing analysis failed:', error.message)
+      const analysisTime = Date.now() - startTime
+      console.error(`❌ Analysis failed after ${analysisTime}ms:`, error.message)
       console.error('Error stack:', error.stack)
       
       res.status(500).json({
         success: false,
         error: 'Analysis failed. Please try again.',
         details: error.message,
-        stack: error.stack
+        stack: error.stack,
+        meta: {
+          analysisTime,
+          wordCount: req.body.essay?.split(/\s+/).length || 0
+        }
       })
     }
   }

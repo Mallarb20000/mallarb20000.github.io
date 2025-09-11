@@ -2,156 +2,113 @@ import { test, expect } from '@playwright/test';
 
 test.describe('UI Interface Tests (No Backend Required)', () => {
   test('welcome screen renders correctly', async ({ page }) => {
-    await page.goto('/writing');
+    await page.goto('/');
     
     // Check main elements are present
-    await expect(page.locator('h1')).toContainText('AI IELTS Writing Coach');
-    await expect(page.locator('h2')).toContainText('Choose Your Essay Question');
+    await expect(page.locator('h2')).toContainText('IELTS WRITING TASK 2');
     
-    // Check mode selection buttons
-    await expect(page.locator('button').filter({ hasText: /Choose from Presets/i })).toBeVisible();
-    await expect(page.locator('button').filter({ hasText: /Write Your Own/i })).toBeVisible();
+    // Check main UI elements exist
+    await expect(page.locator('.prompt-box')).toBeVisible();
+    await expect(page.locator('.editor-container')).toBeVisible();
+    await expect(page.locator('.planning-pad')).toBeVisible();
     
-    // Check preset questions are displayed
-    const questionElements = page.locator('.p-4.rounded-xl.border-2');
-    await expect(questionElements).toHaveCount(4);
-    
-    // Check start button exists and is enabled
-    const startButton = page.locator('button[type="submit"]').filter({ hasText: /Start Planning/i });
-    await expect(startButton).toBeVisible();
-    await expect(startButton).toBeEnabled();
+    // Check essential buttons
+    await expect(page.locator('button').filter({ hasText: /Change Question/i })).toBeVisible();
+    await expect(page.locator('button').filter({ hasText: /Analyze/i })).toBeVisible();
+    await expect(page.locator('button').filter({ hasText: /Clear/i })).toBeVisible();
   });
 
-  test('question selection changes visual state', async ({ page }) => {
-    await page.goto('/writing');
+  test('question display works', async ({ page }) => {
+    await page.goto('/');
     
-    // Get all question cards
-    const questionElements = page.locator('.p-4.rounded-xl.border-2');
-    await expect(questionElements).toHaveCount(4);
+    // Check that the question prompt box is visible
+    const promptBox = page.locator('.prompt-box');
+    await expect(promptBox).toBeVisible();
     
-    // First question should be selected by default (index 0) - has border-indigo-500
-    await expect(questionElements.nth(0)).toHaveClass(/border-indigo-500/);
+    // Check that the question text is displayed
+    const questionText = page.locator('.prompt-text p');
+    await expect(questionText).toBeVisible();
     
-    // Click on second question
-    await questionElements.nth(1).click();
-    
-    // Second question should now be selected
-    await expect(questionElements.nth(1)).toHaveClass(/border-indigo-500/);
-    
-    // First question should no longer be selected (should have border-gray-200)
-    await expect(questionElements.nth(0)).toHaveClass(/border-gray-200/);
+    // Verify the question is not the default loading text
+    await expect(questionText).not.toContainText('Loading question...');
   });
 
-  test('mode switching works', async ({ page }) => {
-    await page.goto('/writing');
+  test('planning pad functionality works', async ({ page }) => {
+    await page.goto('/');
     
-    // Start in preset mode (default)
-    const presetButton = page.locator('button').filter({ hasText: /Choose from Presets/i });
-    const customButton = page.locator('button').filter({ hasText: /Write Your Own/i });
+    // Check planning pad is visible
+    const planningPad = page.locator('.planning-pad');
+    await expect(planningPad).toBeVisible();
     
-    // Preset mode should be active initially
-    await expect(presetButton).toHaveClass(/bg-indigo-600/);
-    await expect(customButton).not.toHaveClass(/bg-indigo-600/);
+    // Check planning questions exist
+    const planningQuestions = page.locator('.planning-question');
+    await expect(planningQuestions).toHaveCount(6); // 6 planning questions
     
-    // Click custom mode
-    await customButton.click();
-    
-    // Custom mode should now be active
-    await expect(customButton).toHaveClass(/bg-indigo-600/);
-    await expect(presetButton).not.toHaveClass(/bg-indigo-600/);
-    
-    // Custom textarea should be visible
-    await expect(page.locator('textarea')).toBeVisible();
-    
-    // Switch back to preset mode
-    await presetButton.click();
-    
-    // Preset questions should be visible again
-    await expect(page.locator('.p-4.rounded-xl.border-2')).toHaveCount(4);
+    // Test that we can type in the first planning textarea
+    const firstTextarea = page.locator('.answer-textarea').first();
+    await firstTextarea.fill('Opinion essay');
+    await expect(firstTextarea).toHaveValue('Opinion essay');
   });
 
-  test('custom question input works', async ({ page }) => {
-    await page.goto('/writing');
+  test('essay editor functionality works', async ({ page }) => {
+    await page.goto('/');
     
-    // Switch to custom mode
-    const customButton = page.locator('button').filter({ hasText: /Write Your Own/i });
-    await customButton.click();
+    // Wait for the structured essay editor to load
+    await page.waitForSelector('.structured-essay-editor', { timeout: 10000 });
     
-    // Find textarea and enter custom question
-    const textarea = page.locator('textarea');
-    await expect(textarea).toBeVisible();
+    // Check that the introduction section exists
+    const introSection = page.locator('[data-section="introduction"]');
+    await expect(introSection).toBeVisible();
     
-    const customQuestion = "This is a custom IELTS question for testing purposes.";
-    await textarea.fill(customQuestion);
-    
-    // Verify the question appears in the selected question display
-    await expect(page.locator('.p-6.bg-gray-50')).toContainText(customQuestion);
-    
-    // Start button should be enabled
-    const startButton = page.locator('button[type="submit"]');
-    await expect(startButton).toBeEnabled();
+    // Test writing in the introduction
+    const introTextarea = introSection.locator('textarea');
+    await introTextarea.fill('This is my introduction paragraph.');
+    await expect(introTextarea).toHaveValue('This is my introduction paragraph.');
   });
 
-  test('selected question display updates correctly', async ({ page }) => {
-    await page.goto('/writing');
+  test('button interactions work', async ({ page }) => {
+    await page.goto('/');
     
-    // Check initial selected question display
-    const selectedQuestionDisplay = page.locator('.p-6.bg-gray-50');
-    await expect(selectedQuestionDisplay).toBeVisible();
-    await expect(selectedQuestionDisplay).toContainText('Selected Question:');
+    // Test Change Question button
+    const changeQuestionBtn = page.locator('button').filter({ hasText: /Change Question/i });
+    await expect(changeQuestionBtn).toBeEnabled();
     
-    // Click on different preset questions and verify display updates
-    const questionElements = page.locator('.p-4.rounded-xl.border-2');
+    // Test Clear button
+    const clearBtn = page.locator('button').filter({ hasText: /Clear/i });
+    await expect(clearBtn).toBeEnabled();
     
-    // Click second question
-    await questionElements.nth(1).click();
-    
-    // The selected question display should contain the second question text
-    const secondQuestionText = await questionElements.nth(1).textContent();
-    await expect(selectedQuestionDisplay).toContainText(secondQuestionText!);
+    // Test Analyze button (should be disabled initially with no content)
+    const analyzeBtn = page.locator('button').filter({ hasText: /Analyze/i });
+    await expect(analyzeBtn).toBeDisabled();
   });
 
-  test('form validation works', async ({ page }) => {
-    await page.goto('/writing');
+  test('chat interface toggle works', async ({ page }) => {
+    await page.goto('/');
     
-    // Switch to custom mode
-    const customButton = page.locator('button').filter({ hasText: /Write Your Own/i });
-    await customButton.click();
+    // Find and click the chat button
+    const chatButton = page.locator('button').filter({ hasText: /Chat with AI Coach/i });
+    await expect(chatButton).toBeVisible();
+    await chatButton.click();
     
-    // Clear the textarea
-    const textarea = page.locator('textarea');
-    await textarea.fill('');
+    // Chat panel should be visible
+    await expect(page.locator('.fixed.right-4.bottom-4')).toBeVisible();
     
-    // Start button should be disabled when no question is entered
-    const startButton = page.locator('button[type="submit"]');
-    await expect(startButton).toBeDisabled();
-    
-    // Add some text
-    await textarea.fill('Test question');
-    
-    // Start button should now be enabled
-    await expect(startButton).toBeEnabled();
+    // Check chat header
+    await expect(page.locator('h3')).toContainText('AI IELTS Coach');
   });
 
   test('responsive design elements work', async ({ page }) => {
-    // Test mobile view
+    await page.goto('/');
+    
+    // Test on mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto('/writing');
     
-    // All essential elements should still be visible
-    await expect(page.locator('h1')).toBeVisible();
-    await expect(page.locator('button[type="submit"]')).toBeVisible();
+    // Main content should still be visible
+    await expect(page.locator('.main-content')).toBeVisible();
     
-    // Mode buttons should stack vertically on mobile (flex-col)
-    const modeContainer = page.locator('.flex.flex-col.sm\\:flex-row');
-    await expect(modeContainer).toBeVisible();
-    
-    // Test desktop view
-    await page.setViewportSize({ width: 1200, height: 800 });
-    await page.reload();
-    
-    // Should work on desktop too
-    await expect(page.locator('h1')).toBeVisible();
-    await expect(page.locator('button[type="submit"]')).toBeVisible();
+    // Planning toggle button should be visible on mobile
+    const planningToggle = page.locator('.planning-toggle-btn');
+    // Note: might be hidden initially on mobile, but button should exist
+    await expect(planningToggle).toBeVisible();
   });
 });

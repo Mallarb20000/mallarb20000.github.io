@@ -8,6 +8,7 @@ import StructuredEssayEditor from '../components/StructuredEssayEditor';
 import ThemeToggle from '../components/ThemeToggle';
 import ChatInterface from '../components/coach/ChatInterface';
 import { initChat, ChatSession } from '../services/geminiService';
+import { analytics } from '../utils/analytics';
 import './writing.css';
 import '../components/StructuredEssayEditor.css';
 
@@ -308,9 +309,11 @@ export default function HomePage() {
     );
     if (!confirmed) return;
 
+    analytics.trackAction('analysis_started', { wordCount });
     setAnalysisState('loading');
 
     const finalEssayText = formatStructuredEssayForSubmission(structuredEssay);
+    const startTime = Date.now();
 
     try {
       const response = await fetch(
@@ -330,6 +333,9 @@ export default function HomePage() {
       const result = await response.json();
 
       if (result.success) {
+        const analysisTime = Date.now() - startTime;
+        analytics.trackAnalysis(wordCount, analysisTime);
+        
         setAnalysisState('analyzed');
         if (typeof window !== 'undefined') {
           sessionStorage.setItem(
@@ -347,6 +353,10 @@ export default function HomePage() {
         throw new Error(result.error || 'Analysis failed');
       }
     } catch (err) {
+      analytics.trackError('analysis_failed', { 
+        error: err instanceof Error ? err.message : 'Unknown error',
+        wordCount 
+      });
       console.error('Analysis failed:', err);
       alert('Analysis failed. Please check that the backend is running.');
       setAnalysisState('initial');
@@ -354,10 +364,12 @@ export default function HomePage() {
   };
 
   const handleClearClick = () => {
+    analytics.trackAction('clear_clicked');
     setShowClearModal(true);
   };
 
   const handleConfirmClear = () => {
+    analytics.trackAction('essay_cleared', { wordCount });
     setShowClearModal(false);
     setStructuredEssay({});
     setAnalysisState('initial');
@@ -486,6 +498,7 @@ export default function HomePage() {
   }, [analysisState]);
 
   const handleToggleChat = () => {
+    analytics.trackAction('chat_toggled', { isChatOpen: !isChatOpen });
     setIsChatOpen(!isChatOpen);
   };
 
